@@ -21,10 +21,10 @@ def run_command(command, description):
     
     result = subprocess.run(command, shell=True)
     if result.returncode != 0:
-        print(f"❌ {description} failed!")
+        print(f" {description} failed!")
         return False
     else:
-        print(f"✅ {description} passed!")
+        print(f" {description} passed!")
         return True
 
 
@@ -80,13 +80,13 @@ def main():
     success = run_command(command, "Project Tests")
     
     if args.coverage and success:
-        print(f"\n📊 Coverage report generated in htmlcov/index.html")
+        print(f"\n Coverage report generated in htmlcov/index.html")
     
     if success:
-        print(f"\n🎉 All tests passed!")
+        print(f"\n All tests passed!")
         sys.exit(0)
     else:
-        print(f"\n💥 Some tests failed!")
+        print(f"\n Some tests failed!")
         sys.exit(1)
 
 
