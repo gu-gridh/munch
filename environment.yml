@@ -1,0 +1,69 @@
+name: "munch-env"
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - python=3.14
+  - pip
+  - psycopg2-binary
+  - ipykernel
+  - poppler
+  - django
+  - django-filter
+  - djangorestframework
+  - django-cors-headers
+  - pyvips
+  - gunicorn
+  - requests
+  - beautifulsoup4
+  - tqdm
+  - pillow
+  - pip:
+    # Core configuration
+    - python-decouple>=3.6
+    - python-dotenv>=0.19.2
+    
+    # Admin interface and UI enhancements
+    - django-admin-interface>=0.19.1
+    - django-colorfield>=0.7.2
+    - django-rangefilter>=0.8.3
+    - django-ckeditor>=6.5.1
+    - django-better-admin-arrayfield>=1.4.2
+    
+    # REST Framework extensions
+    - drf-generators>=0.5.0
+    - drf-dynamic-fields>=0.3.0
+    - drf-spectacular>=0.24.2
+    - djangorestframework-xml>=2.0.0
+    
+    # Admin filters and enhancements
+    - django-admin-autocomplete-filter
+    
+    # Static files
+    - whitenoise>=6.2.0
+    
+    # Error tracking
+    - sentry-sdk>=1.9.10
+    
+    # File storage
+    - django-storages>=1.13.1
+    - boto3>=1.26.0
+    
+    # Authentication
+    - django-oauth-toolkit>=2.2.0
+    
+    # Utilities
+    - lxml>=4.9.1
+    - iiif-prezi3
+    - inflection
+    - uritemplate
+    - pyyaml
+    # Testing
+    - factory-boy
+    - pytest>=7.2.0
+    - pytest-django>=4.5.2
+    - pytest-cov>=4.0.0
+
+
+

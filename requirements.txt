@@ -1,0 +1,61 @@
+# Digtizaing Munch Art Requirements
+# Alternative to environment.yml for pip-only installations
+
+# Core Django
+Django>=5.2
+
+# Database
+psycopg2-binary>=2.9.3
+
+# Configuration
+python-decouple>=3.6
+python-dotenv>=0.19.2
+Pillow>=9.3.0
+pyvips>=2.2.1
+
+# REST Framework
+djangorestframework>=3.14.0
+django-filter>=22.1
+drf-dynamic-fields>=0.3.0
+drf-generators>=0.5.0
+djangorestframework-xml>=2.0.0
+drf-spectacular>=0.24.2
+
+# CORS support
+django-cors-headers>=3.13.0
+
+# Admin interface and UI enhancements
+django-admin-interface>=0.19.1
+django-colorfield>=0.7.2
+django-rangefilter>=0.8.3
+django-ckeditor>=6.5.1
+django-better-admin-arrayfield>=1.4.2
+
+# Testing
+pytest>=7.2.0
+pytest-django>=4.5.2
+pytest-cov>=4.0.0
+factory-boy>=3.2.1
+
+# Static files
+whitenoise>=6.2.0
+
+# Error tracking
+sentry-sdk>=1.9.10
+
+# Production server
+gunicorn>=20.1.0
+
+# File storage
+django-storages>=1.13.1
+boto3>=1.26.0
+
+# Authentication
+django-oauth-toolkit>=2.2.0
+
+# Utilities
+requests>=2.28.1
+lxml>=4.9.1
+beautifulsoup4>=4.11.1
+iiif-prezi3
+pyyaml>=6.0
