@@ -139,7 +139,6 @@ class Image(AbstractImageModel):
     def __str__(self):
         return f"{self.painting.title} – {self.get_image_type_display()}"
 
-
 class Mesh(AbstractBaseModel):
     """3D mesh or related geometric model for the painting surface."""
 

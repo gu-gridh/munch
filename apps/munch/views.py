@@ -10,7 +10,7 @@ from .models import (
     AnnotationCategory,
     Mesh,
     PaintingDocument,
-    PaintingImage,
+    Image,
     PaintingObject,
     Tag,
     VisualAnnotation,
@@ -19,7 +19,7 @@ from .serializers import (
     AnnotationCategorySerializer,
     MeshSerializer,
     PaintingDocumentSerializer,
-    PaintingImageSerializer,
+    ImageSerializer,
     PaintingObjectSerializer,
     TagSerializer,
     VisualAnnotationSerializer,
@@ -48,9 +48,9 @@ class PaintingObjectViewSet(DynamicDepthViewSet):
     ordering_fields = ["title", "object_year", "created_at"]
 
 
-class PaintingImageViewSet(DynamicDepthViewSet):
-    queryset = PaintingImage.objects.filter(published=True).select_related("painting")
-    serializer_class = PaintingImageSerializer
+class ImageViewSet(DynamicDepthViewSet):
+    queryset = Image.objects.filter(published=True).select_related("painting")
+    serializer_class = ImageSerializer
     filter_backends = SEARCH_AND_FILTER
     filterset_fields = ["painting", "image_type", "capture_year", "published"]
     search_fields = ["caption", "source_label", "painting__title"]

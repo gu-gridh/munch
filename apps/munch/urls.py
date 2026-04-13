@@ -7,7 +7,7 @@ from . import views
 
 router = routers.DefaultRouter()
 router.register(r"paintings", views.PaintingObjectViewSet)
-router.register(r"painting-images", views.PaintingImageViewSet)
+router.register(r"painting-images", views.ImageViewSet)
 router.register(r"meshes", views.MeshViewSet)
 router.register(r"painting-documents", views.PaintingDocumentViewSet)
 router.register(r"annotation-categories", views.AnnotationCategoryViewSet)

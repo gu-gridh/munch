@@ -8,7 +8,7 @@ from .models import (
     AnnotationCategory,
     Mesh,
     PaintingDocument,
-    PaintingImage,
+    Image,
     PaintingObject,
     Tag,
     VisualAnnotation,
@@ -27,9 +27,9 @@ class AnnotationCategorySerializer(GenericSerializer):
         fields = ["id", "name", "color", "description"]
 
 
-class PaintingImageSerializer(GenericSerializer):
+class ImageSerializer(GenericSerializer):
     class Meta(GenericSerializer.Meta):
-        model = PaintingImage
+        model = Image
         fields = [
             "id",
             "uuid",
@@ -69,7 +69,7 @@ class VisualAnnotationSerializer(DynamicDepthSerializer):
 
 
 class PaintingObjectSerializer(DynamicDepthSerializer):
-    images = PaintingImageSerializer(many=True, read_only=True)
+    images = ImageSerializer(many=True, read_only=True)
     meshes = MeshSerializer(many=True, read_only=True)
     documents = PaintingDocumentSerializer(many=True, read_only=True)
     annotations = VisualAnnotationSerializer(many=True, read_only=True)
