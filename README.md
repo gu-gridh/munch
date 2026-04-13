@@ -1,2 +1,2 @@
 # munch
-This is a project about creating a visual annotation system for images, specifically orthophotos or topographical visualizations for a Edvard Munch painiting object is university of Oslo.
+This is a project about creating a visual annotation system for images, specifically orthophotos or topographical visualizations for a Edvard Munch painiting object is university of Oslo. The system will allow users to create polygonal annotations on the images, categorize them, and filter them based on various criteria such as year, category, and tags. The backend will consist of several models to manage images, meshes, visual annotations, categories, tags, and painting objects.
