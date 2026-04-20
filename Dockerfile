@@ -10,6 +10,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     libvips-dev \
+    gdal-bin \
+    libgdal-dev \
+    libgeos-dev \
+    proj-bin \
+    libproj-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
