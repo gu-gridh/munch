@@ -26,10 +26,10 @@ class PaintingDocumentInline(admin.TabularInline):
     extra = 0
 
 
-class VisualAnnotationInline(admin.TabularInline):
-    model = VisualAnnotation
-    extra = 0
-    autocomplete_fields = ["image", "mesh", "category"]
+# class VisualAnnotationInline(admin.TabularInline):
+#     model = VisualAnnotation
+#     extra = 0
+#     autocomplete_fields = ["image", "mesh", "category"]
 
 
 @admin.register(PaintingObject)
@@ -37,7 +37,7 @@ class PaintingObjectAdmin(admin.ModelAdmin):
     list_display = ["title", "artist", "inventory_number", "object_year", "published"]
     list_filter = ["artist", "object_year", "published"]
     search_fields = ["title", "inventory_number", "description", "material", "technique"]
-    inlines = [ImageInline, MeshInline, PaintingDocumentInline, VisualAnnotationInline]
+    inlines = [ImageInline, MeshInline, PaintingDocumentInline]
 
 
 @admin.register(Image)
@@ -80,8 +80,8 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(VisualAnnotation)
 class VisualAnnotationAdmin(admin.ModelAdmin):
-    list_display = ["title", "painting", "category", "annotation_year", "shape_type", "published"]
+    list_display = ["title", "category", "annotation_year", "shape_type", "published"]
     list_filter = ["category", "shape_type", "annotation_year", "published"]
-    search_fields = ["title", "notes", "painting__title", "category__name", "svg_selector"]
-    autocomplete_fields = ["painting", "image", "mesh", "category", "tags"]
+    search_fields = ["title", "notes", "image__title", "category__name", "svg_selector"]
+    autocomplete_fields = ["image", "category", "tags"]
     filter_horizontal = ["tags"]

@@ -193,11 +193,17 @@ class PaintingDocument(AbstractBaseModel):
 class VisualAnnotation(AbstractBaseModel):
     """Polygon or multipolygon visual annotation connected to an image and category."""
 
-    painting = models.ForeignKey(
-        PaintingObject,
-        on_delete=models.CASCADE,
-        related_name="annotations",
-        verbose_name=_("Painting object"),
+    # painting = models.ForeignKey(
+    #     PaintingObject,
+    #     on_delete=models.CASCADE,
+    #     related_name="annotations",
+    #     verbose_name=_("Painting object"),
+    # )
+    geometry = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name=_("Geometry"),
+        help_text=_("List of polygons; each polygon is stored as x/y coordinate objects."),
     )
     image = models.ForeignKey(
         Image,
@@ -205,14 +211,14 @@ class VisualAnnotation(AbstractBaseModel):
         related_name="annotations",
         verbose_name=_("Image"),
     )
-    mesh = models.ForeignKey(
-        Mesh,
-        on_delete=models.SET_NULL,
-        related_name="annotations",
-        blank=True,
-        null=True,
-        verbose_name=_("Mesh"),
-    )
+    # mesh = models.ForeignKey(
+    #     Mesh,
+    #     on_delete=models.SET_NULL,
+    #     related_name="annotations",
+    #     blank=True,
+    #     null=True,
+    #     verbose_name=_("Mesh"),
+    # )
     title = models.CharField(max_length=256, blank=True, verbose_name=_("Title"))
     category = models.ForeignKey(
         AnnotationCategory,
@@ -234,17 +240,12 @@ class VisualAnnotation(AbstractBaseModel):
         default="polygon",
         verbose_name=_("Shape type"),
     )
-    geometry = models.JSONField(
-        default=list,
-        blank=True,
-        verbose_name=_("Geometry"),
-        help_text=_("List of polygons; each polygon is stored as x/y coordinate objects."),
-    )
-    svg_selector = models.TextField(
-        blank=True,
-        verbose_name=_("SVG selector"),
-        help_text=_("Raw SVG polygon snippet from Annotorious, e.g. <svg><polygon points=.../></svg>."),
-    )
+
+    # svg_selector = models.TextField(
+    #     blank=True,
+    #     verbose_name=_("SVG selector"),
+    #     help_text=_("Raw SVG polygon snippet from Annotorious, e.g. <svg><polygon points=.../></svg>."),
+    # )
     notes = models.TextField(blank=True, verbose_name=_("Notes"))
 
     class Meta:
@@ -266,4 +267,4 @@ class VisualAnnotation(AbstractBaseModel):
 
     def __str__(self):
         label = self.title or self.category.name
-        return f"{self.painting.title} – {label}"
+        return f"{self.image.title} – {label}"
