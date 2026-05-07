@@ -31,7 +31,8 @@ SEARCH_AND_FILTER = DynamicDepthViewSet.filter_backends + [
     filters.OrderingFilter,
 ]
 
-
+# Panel refers to painting object here
+# It should return attached images, meshes, documents, and annotations with the painting object metadata
 class PaintingObjectViewSet(DynamicDepthViewSet):
     """API endpoint for painting metadata and nested annotation resources."""
 
@@ -138,3 +139,31 @@ class VisualAnnotationViewSet(DynamicDepthViewSet):
                 "tags": TagSerializer(tags, many=True).data,
             }
         )
+
+# Filter or search API
+# Filter based on year, categories, tags
+class SearchViewSet(DynamicDepthViewSet):
+    """Alias for visual annotations with the same filters/search but a different endpoint name."""
+
+    queryset = VisualAnnotation.objects.filter(published=True).select_related(
+        "painting",
+        "image",
+        "mesh",
+        "category",
+    ).prefetch_related("tags")
+    serializer_class = VisualAnnotationSerializer
+    filter_backends = SEARCH_AND_FILTER
+    filterset_fields = {
+        "painting": ["exact"],
+        "image": ["exact"],
+        "mesh": ["exact"],
+        "category": ["exact"],
+        "tags": ["exact"],
+        "annotation_year": ["exact", "gte", "lte"],
+        "source": ["exact"],
+        "shape_type": ["exact"],
+        "published": ["exact"],
+    }
+    search_fields = ["title", "notes", "svg_selector", "painting__title", "category__name", "tags__text"]
+    ordering_fields = ["annotation_year", "created_at", "updated_at"]
+    
