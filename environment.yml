@@ -1,4 +1,4 @@
-name: "munch-env"
+name: "munch"
 channels:
   - conda-forge
   - anaconda
