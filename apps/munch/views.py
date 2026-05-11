@@ -1,5 +1,6 @@
 """Viewsets for the Edvard Munch annotation backend."""
 
+import django_filters
 from rest_framework import filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -34,6 +35,19 @@ SEARCH_AND_FILTER = DynamicDepthViewSet.filter_backends + [
     filters.OrderingFilter,
 ]
 
+
+class PaintingObjectFilter(django_filters.FilterSet):
+    title = django_filters.CharFilter(method="filter_lower")
+    artist = django_filters.CharFilter(method="filter_lower")
+    inventory_number = django_filters.CharFilter(method="filter_lower")
+
+    def filter_lower(self, queryset, name, value):
+        return queryset.filter(**{f"{name}__iexact": value.lower()})
+
+    class Meta:
+        model = PaintingObject
+        fields = ["title", "artist", "inventory_number", "object_year", "published"]
+
 # Panel refers to painting object here
 # It should return attached images, meshes, documents, and annotations with the painting object metadata
 class PaintingObjectViewSet(DynamicDepthViewSet):
@@ -46,13 +60,7 @@ class PaintingObjectViewSet(DynamicDepthViewSet):
     )
     serializer_class = PaintingObjectSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_fields = {
-        "title": ["exact", "icontains"],
-        "artist": ["exact", "icontains"],
-        "inventory_number": ["exact", "icontains"],
-        "object_year": ["exact"],
-        "published": ["exact"],
-    }
+    filterset_class = PaintingObjectFilter
     search_fields = ["title", "inventory_number", "description", "material", "technique"]
     ordering_fields = ["title", "object_year", "created_at"]
 
