@@ -147,7 +147,7 @@ class Image(AbstractImageModel):
         ordering = ["sort_order", "id"]
 
     def __str__(self):
-        return f"{self.painting.title} – {self.get_image_type_display()}"
+        return f"{self.get_image_type_display()}"
 
 class Mesh(AbstractBaseModel):
     """3D mesh or related geometric model for the painting surface."""
@@ -277,4 +277,4 @@ class VisualAnnotation(AbstractBaseModel):
 
     def __str__(self):
         label = self.title or self.category.name
-        return f"{self.image.title} – {label}"
+        return f"{label}"
