@@ -251,11 +251,11 @@ class VisualAnnotation(AbstractBaseModel):
         verbose_name=_("Shape type"),
     )
 
-    # svg_selector = models.TextField(
-    #     blank=True,
-    #     verbose_name=_("SVG selector"),
-    #     help_text=_("Raw SVG polygon snippet from Annotorious, e.g. <svg><polygon points=.../></svg>."),
-    # )
+    svg_selector = models.TextField(
+        blank=True,
+        verbose_name=_("SVG selector"),
+        help_text=_("Raw SVG polygon snippet from Annotorious, e.g. <svg><polygon points=.../></svg>."),
+    )
     notes = models.TextField(blank=True, verbose_name=_("Notes"))
 
     class Meta:

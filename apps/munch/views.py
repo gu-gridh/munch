@@ -18,6 +18,7 @@ from .models import (
 )
 from .serializers import (
     AnnotationCategorySerializer,
+    AnnotoriousAnnotationSerializer,
     MeshSerializer,
     PaintingDocumentSerializer,
     ImageSerializer,
@@ -143,6 +144,32 @@ class VisualAnnotationViewSet(DynamicDepthViewSet):
                 "tags": TagSerializer(tags, many=True).data,
             }
         )
+
+    @action(detail=False, methods=["get", "post"], url_path="annotorious")
+    def annotorious(self, request):
+        """List or create annotations in W3C Web Annotation format for Annotorious."""
+        if request.method == "GET":
+            qs = self.filter_queryset(self.get_queryset())
+            serializer = AnnotoriousAnnotationSerializer(qs, many=True)
+            return Response(serializer.data)
+
+        serializer = AnnotoriousAnnotationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=201)
+
+    @action(detail=True, methods=["put", "patch", "delete"], url_path="annotorious")
+    def annotorious_detail(self, request, pk=None):
+        """Update or delete a single annotation in W3C format."""
+        instance = self.get_object()
+        if request.method == "DELETE":
+            instance.delete()
+            return Response(status=204)
+        partial = request.method == "PATCH"
+        serializer = AnnotoriousAnnotationSerializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 # Filter or search API
 # Filter based on year, categories, tags

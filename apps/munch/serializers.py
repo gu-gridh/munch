@@ -73,6 +73,58 @@ class VisualAnnotationSerializer(DynamicDepthSerializer):
         fields = "__all__"
 
 
+class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
+    """Read/write W3C Web Annotation format compatible with Annotorious."""
+
+    class Meta:
+        model = VisualAnnotation
+        fields = [
+            "id", "image", "category", "tags",
+            "title", "notes", "annotation_year", "source", "svg_selector",
+        ]
+
+    def to_representation(self, instance):
+        return {
+            "id": str(instance.pk),
+            "type": "Annotation",
+            "target": {
+                "source": str(instance.image_id),
+                "selector": {
+                    "type": "SvgSelector",
+                    "value": instance.svg_selector or "",
+                },
+            },
+            "category": instance.category_id,
+            "category_detail": {
+                "id": instance.category.pk,
+                "name": instance.category.name,
+                "color": instance.category.color,
+            } if instance.category_id else None,
+            "tags": [{"id": t.pk, "text": t.text} for t in instance.tags.all()],
+            "title": instance.title,
+            "annotation_year": instance.annotation_year_id,
+            "notes": instance.notes,
+            "source": instance.source,
+        }
+
+    def to_internal_value(self, data):
+        # Accept W3C format (from Annotorious) or flat format
+        if "target" in data:
+            selector = data.get("target", {}).get("selector", {})
+            flat_data = {
+                "svg_selector": selector.get("value", ""),
+                "image": data.get("target", {}).get("source") or data.get("image"),
+                "category": data.get("category"),
+                "title": data.get("title", ""),
+                "notes": data.get("notes", ""),
+                "source": data.get("source", "annotorious"),
+                "annotation_year": data.get("annotation_year"),
+            }
+        else:
+            flat_data = data
+        return super().to_internal_value(flat_data)
+
+
 class PaintingObjectSerializer(DynamicDepthSerializer):
     images = ImageSerializer(many=True, read_only=True)
     meshes = MeshSerializer(many=True, read_only=True)
