@@ -12,6 +12,7 @@ router.register(r"meshes", views.MeshViewSet)
 router.register(r"painting-documents", views.PaintingDocumentViewSet)
 router.register(r"annotation-categories", views.AnnotationCategoryViewSet)
 router.register(r"tags", views.TagViewSet)
+router.register(r"years", views.YearViewSet)
 router.register(r"visual-annotations", views.VisualAnnotationViewSet)
 router.register(r"search", views.SearchViewSet, basename="search")  # Alias for visual annotations
 
