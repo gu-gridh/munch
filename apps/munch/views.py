@@ -48,6 +48,67 @@ class PaintingObjectFilter(django_filters.FilterSet):
         model = PaintingObject
         fields = ["title", "artist", "inventory_number", "object_year", "published"]
 
+
+class TagFilter(django_filters.FilterSet):
+    panel = django_filters.CharFilter(method="filter_by_panel")
+
+    def filter_by_panel(self, queryset, name, value):
+        return queryset.filter(
+            visual_annotations__image__painting__title__iexact=value.lower()
+        ).distinct()
+
+    class Meta:
+        model = Tag
+        fields = ["text", "published"]
+
+
+class YearFilter(django_filters.FilterSet):
+    panel = django_filters.CharFilter(method="filter_by_panel")
+
+    def filter_by_panel(self, queryset, name, value):
+        return queryset.filter(
+            annotations__image__painting__title__iexact=value.lower()
+        ).distinct()
+
+    class Meta:
+        model = Year
+        fields = ["year"]
+
+
+class AnnotationCategoryFilter(django_filters.FilterSet):
+    panel = django_filters.CharFilter(method="filter_by_panel")
+
+    def filter_by_panel(self, queryset, name, value):
+        return queryset.filter(
+            annotations__image__painting__title__iexact=value.lower()
+        ).distinct()
+
+    class Meta:
+        model = AnnotationCategory
+        fields = ["name", "published"]
+
+
+class ImageFilter(django_filters.FilterSet):
+    panel = django_filters.CharFilter(method="filter_by_panel")
+
+    def filter_by_panel(self, queryset, name, value):
+        return queryset.filter(painting__title__iexact=value.lower())
+
+    class Meta:
+        model = Image
+        fields = ["painting", "image_type", "capture_year", "published"]
+
+
+class MeshFilter(django_filters.FilterSet):
+    panel = django_filters.CharFilter(method="filter_by_panel")
+
+    def filter_by_panel(self, queryset, name, value):
+        return queryset.filter(painting__title__iexact=value.lower())
+
+    class Meta:
+        model = Mesh
+        fields = ["painting", "mesh_format", "published"]
+
 # Panel refers to painting object here
 # It should return attached images, meshes, documents, and annotations with the painting object metadata
 class PaintingObjectViewSet(DynamicDepthViewSet):
@@ -69,7 +130,7 @@ class ImageViewSet(DynamicDepthViewSet):
     queryset = Image.objects.filter(published=True).select_related("painting")
     serializer_class = ImageSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_fields = ["painting", "image_type", "capture_year", "published"]
+    filterset_class = ImageFilter
     search_fields = ["caption", "source_label", "painting__title"]
     ordering_fields = ["capture_year", "sort_order", "created_at"]
 
@@ -78,7 +139,7 @@ class MeshViewSet(DynamicDepthViewSet):
     queryset = Mesh.objects.filter(published=True).select_related("painting")
     serializer_class = MeshSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_fields = ["painting", "mesh_format", "published"]
+    filterset_class = MeshFilter
     search_fields = ["title", "description", "painting__title"]
     ordering_fields = ["title", "created_at"]
 
@@ -96,7 +157,7 @@ class AnnotationCategoryViewSet(DynamicDepthViewSet):
     queryset = AnnotationCategory.objects.filter(published=True)
     serializer_class = AnnotationCategorySerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_fields = ["name", "published"]
+    filterset_class = AnnotationCategoryFilter
     search_fields = ["name", "description"]
     ordering_fields = ["name", "created_at"]
 
@@ -105,7 +166,7 @@ class TagViewSet(DynamicDepthViewSet):
     queryset = Tag.objects.filter(published=True)
     serializer_class = TagSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_fields = ["text", "published"]
+    filterset_class = TagFilter
     search_fields = ["text"]
     ordering_fields = ["text", "created_at"]
 
@@ -113,7 +174,7 @@ class YearViewSet(DynamicDepthViewSet):
     queryset = Year.objects.all()
     serializer_class = YearSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_fields = ["year"]
+    filterset_class = YearFilter
     search_fields = ["year"]
     ordering_fields = ["year"]
 
