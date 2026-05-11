@@ -40,7 +40,6 @@ class PaintingObjectViewSet(DynamicDepthViewSet):
         "images",
         "meshes",
         "documents",
-        "annotations__tags",
     )
     serializer_class = PaintingObjectSerializer
     filter_backends = SEARCH_AND_FILTER

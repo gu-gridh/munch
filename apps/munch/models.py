@@ -72,7 +72,7 @@ class PaintingObject(AbstractBaseModel):
     title = models.CharField(max_length=256, verbose_name=_("Title"))
     artist = models.CharField(max_length=256, default="Edvard Munch", verbose_name=_("Artist"))
     inventory_number = models.CharField(max_length=128, blank=True, verbose_name=_("Inventory number"))
-    object_year = models.PositiveIntegerField(blank=True, null=True, verbose_name=_("Object year"))
+    object_year = models.ForeignKey("Year", on_delete=models.SET_NULL, related_name="painting_objects", blank=True, null=True, verbose_name=_("Object year"))
     material = models.CharField(max_length=256, blank=True, verbose_name=_("Material"))
     technique = models.CharField(max_length=256, blank=True, verbose_name=_("Technique"))
     description = models.TextField(blank=True, verbose_name=_("Description"))
@@ -94,6 +94,16 @@ class Tag(AbstractTagModel):
         verbose_name_plural = _("Tags")
         ordering = ["text"]
 
+class Year(models.Model):
+    year = models.PositiveIntegerField(unique=True, verbose_name=_("Year"))
+
+    class Meta:
+        verbose_name = _("Year")
+        verbose_name_plural = _("Years")
+        ordering = ["year"]
+
+    def __str__(self):
+        return str(self.year)
 
 class AnnotationCategory(AbstractBaseModel):
     """Category / type of visual annotation, with frontend display color."""
@@ -227,7 +237,7 @@ class VisualAnnotation(AbstractBaseModel):
         verbose_name=_("Category"),
     )
     tags = models.ManyToManyField(Tag, blank=True, related_name="visual_annotations", verbose_name=_("Tags"))
-    annotation_year = models.PositiveIntegerField(blank=True, null=True, verbose_name=_("Annotation year"))
+    annotation_year = models.ForeignKey(Year, on_delete=models.SET_NULL, related_name="annotations", blank=True, null=True, verbose_name=_("Annotation year"))
     source = models.CharField(
         max_length=32,
         choices=ANNOTATION_SOURCE_CHOICES,
@@ -251,7 +261,7 @@ class VisualAnnotation(AbstractBaseModel):
     class Meta:
         verbose_name = _("Visual annotation")
         verbose_name_plural = _("Visual annotations")
-        ordering = ["annotation_year", "id"]
+        ordering = ["annotation_year__year", "id"]
         indexes = [models.Index(fields=["annotation_year"])]
 
     def save(self, *args, **kwargs):
