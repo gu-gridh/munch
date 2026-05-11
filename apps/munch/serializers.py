@@ -12,6 +12,7 @@ from .models import (
     PaintingObject,
     Tag,
     VisualAnnotation,
+    Year,
 )
 
 
@@ -20,6 +21,10 @@ class TagSerializer(GenericSerializer):
         model = Tag
         fields = ["id", "text"]
 
+class YearSerializer(GenericSerializer):
+    class Meta(GenericSerializer.Meta):
+        model = Year
+        fields = ["id", "year"]
 
 class AnnotationCategorySerializer(GenericSerializer):
     class Meta(GenericSerializer.Meta):

@@ -14,6 +14,7 @@ from .models import (
     PaintingObject,
     Tag,
     VisualAnnotation,
+    Year,
 )
 from .serializers import (
     AnnotationCategorySerializer,
@@ -23,6 +24,7 @@ from .serializers import (
     PaintingObjectSerializer,
     TagSerializer,
     VisualAnnotationSerializer,
+    YearSerializer,
 )
 
 
@@ -92,6 +94,13 @@ class TagViewSet(DynamicDepthViewSet):
     search_fields = ["text"]
     ordering_fields = ["text", "created_at"]
 
+class YearViewSet(DynamicDepthViewSet):
+    queryset = Year.objects.all()
+    serializer_class = YearSerializer
+    filter_backends = SEARCH_AND_FILTER
+    filterset_fields = ["year"]
+    search_fields = ["year"]
+    ordering_fields = ["year"]
 
 class VisualAnnotationViewSet(DynamicDepthViewSet):
     """API endpoint for polygon and multipolygon annotations with frontend filters."""
