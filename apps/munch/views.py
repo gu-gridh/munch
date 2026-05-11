@@ -46,7 +46,13 @@ class PaintingObjectViewSet(DynamicDepthViewSet):
     )
     serializer_class = PaintingObjectSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_fields = ["artist", "inventory_number", "object_year", "published"]
+    filterset_fields = {
+        "title": ["exact", "icontains"],
+        "artist": ["exact", "icontains"],
+        "inventory_number": ["exact", "icontains"],
+        "object_year": ["exact"],
+        "published": ["exact"],
+    }
     search_fields = ["title", "inventory_number", "description", "material", "technique"]
     ordering_fields = ["title", "object_year", "created_at"]
 
