@@ -97,17 +97,13 @@ class VisualAnnotationViewSet(DynamicDepthViewSet):
     """API endpoint for polygon and multipolygon annotations with frontend filters."""
 
     queryset = VisualAnnotation.objects.filter(published=True).select_related(
-        "painting",
         "image",
-        "mesh",
         "category",
     ).prefetch_related("tags")
     serializer_class = VisualAnnotationSerializer
     filter_backends = SEARCH_AND_FILTER
     filterset_fields = {
-        "painting": ["exact"],
         "image": ["exact"],
-        "mesh": ["exact"],
         "category": ["exact"],
         "tags": ["exact"],
         "annotation_year": ["exact", "gte", "lte"],
@@ -145,17 +141,13 @@ class SearchViewSet(DynamicDepthViewSet):
     """Alias for visual annotations with the same filters/search but a different endpoint name."""
 
     queryset = VisualAnnotation.objects.filter(published=True).select_related(
-        "painting",
         "image",
-        "mesh",
         "category",
     ).prefetch_related("tags")
     serializer_class = VisualAnnotationSerializer
     filter_backends = SEARCH_AND_FILTER
     filterset_fields = {
-        "painting": ["exact"],
         "image": ["exact"],
-        "mesh": ["exact"],
         "category": ["exact"],
         "tags": ["exact"],
         "annotation_year": ["exact", "gte", "lte"],
