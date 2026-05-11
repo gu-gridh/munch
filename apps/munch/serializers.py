@@ -63,11 +63,6 @@ class PaintingDocumentSerializer(GenericSerializer):
 class VisualAnnotationSerializer(DynamicDepthSerializer):
     category_detail = AnnotationCategorySerializer(source="category", read_only=True)
     tags_detail = TagSerializer(source="tags", many=True, read_only=True)
-    polygon_count = serializers.SerializerMethodField()
-
-    def get_polygon_count(self, obj):
-        return len(obj.geometry or [])
-
     class Meta(DynamicDepthSerializer.Meta):
         model = VisualAnnotation
         fields = "__all__"
@@ -80,7 +75,7 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
         model = VisualAnnotation
         fields = [
             "id", "image", "category", "tags",
-            "title", "notes", "annotation_year", "source", "svg_selector",
+            "title", "notes", "annotation_year", "source", "annotation_borders",
         ]
 
     def to_representation(self, instance):
@@ -91,7 +86,7 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
                 "source": str(instance.image_id),
                 "selector": {
                     "type": "SvgSelector",
-                    "value": instance.svg_selector or "",
+                    "value": instance.annotation_borders or "",
                 },
             },
             "category": instance.category_id,
@@ -112,7 +107,7 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
         if "target" in data:
             selector = data.get("target", {}).get("selector", {})
             flat_data = {
-                "svg_selector": selector.get("value", ""),
+                "annotation_borders": selector.get("value", ""),
                 "image": data.get("target", {}).get("source") or data.get("image"),
                 "category": data.get("category"),
                 "title": data.get("title", ""),

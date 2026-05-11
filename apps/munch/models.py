@@ -209,12 +209,20 @@ class VisualAnnotation(AbstractBaseModel):
     #     related_name="annotations",
     #     verbose_name=_("Painting object"),
     # )
-    geometry = models.JSONField(
-        default=list,
+    # geometry = models.JSONField(
+    #     default=list,
+    #     blank=True,
+    #     verbose_name=_("Geometry"),
+    #     help_text=_("List of polygons; each polygon is stored as x/y coordinate objects."),
+    # )
+
+    annotation_borders = models.TextField(
         blank=True,
-        verbose_name=_("Geometry"),
-        help_text=_("List of polygons; each polygon is stored as x/y coordinate objects."),
+        verbose_name=_("SVG selector"),
+        help_text=_("Raw SVG polygon snippet from Annotorious, e.g. <svg><polygon points=.../></svg>."),
     )
+    notes = models.TextField(blank=True, verbose_name=_("Notes"))
+
     image = models.ForeignKey(
         Image,
         on_delete=models.CASCADE,
@@ -251,29 +259,11 @@ class VisualAnnotation(AbstractBaseModel):
         verbose_name=_("Shape type"),
     )
 
-    svg_selector = models.TextField(
-        blank=True,
-        verbose_name=_("SVG selector"),
-        help_text=_("Raw SVG polygon snippet from Annotorious, e.g. <svg><polygon points=.../></svg>."),
-    )
-    notes = models.TextField(blank=True, verbose_name=_("Notes"))
-
     class Meta:
         verbose_name = _("Visual annotation")
         verbose_name_plural = _("Visual annotations")
         ordering = ["annotation_year__year", "id"]
-        indexes = [models.Index(fields=["annotation_year"])]
-
-    def save(self, *args, **kwargs):
-        if self.svg_selector and not self.geometry:
-            self.geometry = parse_svg_polygons(self.svg_selector)
-
-        if len(self.geometry or []) > 1:
-            self.shape_type = "multipolygon"
-        else:
-            self.shape_type = "polygon"
-
-        super().save(*args, **kwargs)
+        indexes = [models.Index(fields=["annotation_year"])]   
 
     def __str__(self):
         label = self.title or self.category.name
