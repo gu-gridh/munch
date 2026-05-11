@@ -8,6 +8,7 @@ from .models import (
     PaintingObject,
     Tag,
     VisualAnnotation,
+    Year,
 )
 
 
@@ -77,6 +78,11 @@ class TagAdmin(admin.ModelAdmin):
     list_filter = ["published"]
     search_fields = ["text"]
 
+ 
+@admin.register(Year)
+class YearAdmin(admin.ModelAdmin):
+    list_display = ["year"]
+    search_fields = ["year"]
 
 @admin.register(VisualAnnotation)
 class VisualAnnotationAdmin(admin.ModelAdmin):
