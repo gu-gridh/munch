@@ -246,11 +246,10 @@ class PaintingDocument(AbstractBaseModel):
 class VisualAnnotation(AbstractBaseModel):
     """Polygon or multipolygon visual annotation connected to an artwork and category."""
 
-    geometry = models.JSONField(
-        default=list,
+    svg_selector = models.TextField(
         blank=True,
-        verbose_name=_("Geometry"),
-        help_text=_("List of polygons; each polygon is stored as x/y coordinate objects."),
+        verbose_name=_("SVG selector"),
+        help_text=_("Raw SVG polygon snippet from Annotorious, e.g. <svg><polygon points=.../></svg>."),
     )
     artwork = models.ForeignKey(
         Artwork,
@@ -282,11 +281,7 @@ class VisualAnnotation(AbstractBaseModel):
         default="polygon",
         verbose_name=_("Shape type"),
     )
-    svg_selector = models.TextField(
-        blank=True,
-        verbose_name=_("SVG selector"),
-        help_text=_("Raw SVG polygon snippet from Annotorious, e.g. <svg><polygon points=.../></svg>."),
-    )
+
     notes = models.TextField(blank=True, verbose_name=_("Notes"))
 
     class Meta:
@@ -296,14 +291,6 @@ class VisualAnnotation(AbstractBaseModel):
         indexes = [models.Index(fields=["annotation_year"])]
 
     def save(self, *args, **kwargs):
-        if self.svg_selector and not self.geometry:
-            self.geometry = parse_svg_polygons(self.svg_selector)
-
-        if len(self.geometry or []) > 1:
-            self.shape_type = "multipolygon"
-        else:
-            self.shape_type = "polygon"
-
         is_new = self.pk is None
         super().save(*args, **kwargs)
 
