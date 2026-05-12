@@ -9,22 +9,28 @@ from munch.abstract.views import DynamicDepthViewSet
 
 from .models import (
     AnnotationCategory,
+    Artist,
+    Artwork,
+    Material,
     Mesh,
     PaintingDocument,
     Image,
-    PaintingObject,
     Tag,
+    Technique,
     VisualAnnotation,
     Year,
 )
 from .serializers import (
     AnnotationCategorySerializer,
     AnnotoriousAnnotationSerializer,
+    ArtistSerializer,
+    ArtworkSerializer,
+    MaterialSerializer,
     MeshSerializer,
     PaintingDocumentSerializer,
     ImageSerializer,
-    PaintingObjectSerializer,
     TagSerializer,
+    TechniqueSerializer,
     VisualAnnotationSerializer,
     YearSerializer,
 )
@@ -36,17 +42,16 @@ SEARCH_AND_FILTER = DynamicDepthViewSet.filter_backends + [
 ]
 
 
-class PaintingObjectFilter(django_filters.FilterSet):
+class ArtworkFilter(django_filters.FilterSet):
     title = django_filters.CharFilter(method="filter_lower")
-    artist = django_filters.CharFilter(method="filter_lower")
     inventory_number = django_filters.CharFilter(method="filter_lower")
 
     def filter_lower(self, queryset, name, value):
         return queryset.filter(**{f"{name}__iexact": value.lower()})
 
     class Meta:
-        model = PaintingObject
-        fields = ["title", "artist", "inventory_number", "object_year", "published"]
+        model = Artwork
+        fields = ["title", "inventory_number", "artist", "creation_year", "published"]
 
 
 class TagFilter(django_filters.FilterSet):
@@ -54,7 +59,7 @@ class TagFilter(django_filters.FilterSet):
 
     def filter_by_panel(self, queryset, name, value):
         return queryset.filter(
-            visual_annotations__image__painting__title__iexact=value.lower()
+            visual_annotations__artwork__title__iexact=value.lower()
         ).distinct()
 
     class Meta:
@@ -67,7 +72,7 @@ class YearFilter(django_filters.FilterSet):
 
     def filter_by_panel(self, queryset, name, value):
         return queryset.filter(
-            annotations__image__painting__title__iexact=value.lower()
+            annotations__artwork__title__iexact=value.lower()
         ).distinct()
 
     class Meta:
@@ -80,7 +85,7 @@ class AnnotationCategoryFilter(django_filters.FilterSet):
 
     def filter_by_panel(self, queryset, name, value):
         return queryset.filter(
-            annotations__image__painting__title__iexact=value.lower()
+            annotations__artwork__title__iexact=value.lower()
         ).distinct()
 
     class Meta:
@@ -92,64 +97,89 @@ class ImageFilter(django_filters.FilterSet):
     panel = django_filters.CharFilter(method="filter_by_panel")
 
     def filter_by_panel(self, queryset, name, value):
-        return queryset.filter(painting__title__iexact=value.lower())
+        return queryset.filter(artwork__title__iexact=value.lower())
 
     class Meta:
         model = Image
-        fields = ["painting", "image_type", "capture_year", "published"]
+        fields = ["artwork", "image_type", "capture_year", "published"]
 
 
 class MeshFilter(django_filters.FilterSet):
     panel = django_filters.CharFilter(method="filter_by_panel")
 
     def filter_by_panel(self, queryset, name, value):
-        return queryset.filter(painting__title__iexact=value.lower())
+        return queryset.filter(artwork__title__iexact=value.lower())
 
     class Meta:
         model = Mesh
-        fields = ["painting", "mesh_format", "published"]
+        fields = ["artwork", "mesh_format", "published"]
 
-# Panel refers to painting object here
-# It should return attached images, meshes, documents, and annotations with the painting object metadata
-class PaintingObjectViewSet(DynamicDepthViewSet):
-    """API endpoint for painting metadata and nested annotation resources."""
+class ArtistViewSet(DynamicDepthViewSet):
+    queryset = Artist.objects.all()
+    serializer_class = ArtistSerializer
+    filter_backends = SEARCH_AND_FILTER
+    search_fields = ["name"]
+    ordering_fields = ["name"]
 
-    queryset = PaintingObject.objects.filter(published=True).prefetch_related(
+
+class MaterialViewSet(DynamicDepthViewSet):
+    queryset = Material.objects.all()
+    serializer_class = MaterialSerializer
+    filter_backends = SEARCH_AND_FILTER
+    search_fields = ["name"]
+    ordering_fields = ["name"]
+
+
+class TechniqueViewSet(DynamicDepthViewSet):
+    queryset = Technique.objects.all()
+    serializer_class = TechniqueSerializer
+    filter_backends = SEARCH_AND_FILTER
+    search_fields = ["name"]
+    ordering_fields = ["name"]
+
+
+# Panel refers to artwork here
+class ArtworkViewSet(DynamicDepthViewSet):
+    """API endpoint for artwork metadata and nested annotation resources."""
+
+    queryset = Artwork.objects.filter(published=True).prefetch_related(
         "images",
         "meshes",
         "documents",
-    )
-    serializer_class = PaintingObjectSerializer
+        "materials",
+        "techniques",
+    ).select_related("artist")
+    serializer_class = ArtworkSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_class = PaintingObjectFilter
-    search_fields = ["title", "inventory_number", "description", "material", "technique"]
-    ordering_fields = ["title", "object_year", "created_at"]
+    filterset_class = ArtworkFilter
+    search_fields = ["title", "inventory_number", "description"]
+    ordering_fields = ["title", "creation_year", "created_at"]
 
 
 class ImageViewSet(DynamicDepthViewSet):
-    queryset = Image.objects.filter(published=True).select_related("painting")
+    queryset = Image.objects.filter(published=True).select_related("artwork")
     serializer_class = ImageSerializer
     filter_backends = SEARCH_AND_FILTER
     filterset_class = ImageFilter
-    search_fields = ["caption", "source_label", "painting__title"]
+    search_fields = ["caption", "source_label", "artwork__title"]
     ordering_fields = ["capture_year", "sort_order", "created_at"]
 
 
 class MeshViewSet(DynamicDepthViewSet):
-    queryset = Mesh.objects.filter(published=True).select_related("painting")
+    queryset = Mesh.objects.filter(published=True).select_related("artwork")
     serializer_class = MeshSerializer
     filter_backends = SEARCH_AND_FILTER
     filterset_class = MeshFilter
-    search_fields = ["title", "description", "painting__title"]
+    search_fields = ["title", "description", "artwork__title"]
     ordering_fields = ["title", "created_at"]
 
 
 class PaintingDocumentViewSet(DynamicDepthViewSet):
-    queryset = PaintingDocument.objects.filter(published=True).select_related("painting")
+    queryset = PaintingDocument.objects.filter(published=True).select_related("artwork")
     serializer_class = PaintingDocumentSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_fields = ["painting", "document_type", "published"]
-    search_fields = ["title", "description", "painting__title"]
+    filterset_fields = ["artwork", "document_type", "published"]
+    search_fields = ["title", "description", "artwork__title"]
     ordering_fields = ["title", "created_at"]
 
 
@@ -182,13 +212,13 @@ class VisualAnnotationViewSet(DynamicDepthViewSet):
     """API endpoint for polygon and multipolygon annotations with frontend filters."""
 
     queryset = VisualAnnotation.objects.filter(published=True).select_related(
-        "image",
+        "artwork",
         "category",
     ).prefetch_related("tags")
     serializer_class = VisualAnnotationSerializer
     filter_backends = SEARCH_AND_FILTER
     filterset_fields = {
-        "image": ["exact"],
+        "artwork": ["exact"],
         "category": ["exact"],
         "tags": ["exact"],
         "annotation_year": ["exact", "gte", "lte"],
@@ -196,7 +226,7 @@ class VisualAnnotationViewSet(DynamicDepthViewSet):
         "shape_type": ["exact"],
         "published": ["exact"],
     }
-    search_fields = ["title", "notes", "svg_selector", "painting__title", "category__name", "tags__text"]
+    search_fields = ["title", "alt_title", "notes", "svg_selector", "artwork__title", "category__name", "tags__text"]
     ordering_fields = ["annotation_year", "created_at", "updated_at"]
 
     @action(detail=False, methods=["get"])
@@ -252,13 +282,13 @@ class SearchViewSet(DynamicDepthViewSet):
     """Alias for visual annotations with the same filters/search but a different endpoint name."""
 
     queryset = VisualAnnotation.objects.filter(published=True).select_related(
-        "image",
+        "artwork",
         "category",
     ).prefetch_related("tags")
     serializer_class = VisualAnnotationSerializer
     filter_backends = SEARCH_AND_FILTER
     filterset_fields = {
-        "image": ["exact"],
+        "artwork": ["exact"],
         "category": ["exact"],
         "tags": ["exact"],
         "annotation_year": ["exact", "gte", "lte"],
@@ -266,6 +296,5 @@ class SearchViewSet(DynamicDepthViewSet):
         "shape_type": ["exact"],
         "published": ["exact"],
     }
-    search_fields = ["title", "notes", "svg_selector", "painting__title", "category__name", "tags__text"]
+    search_fields = ["title", "alt_title", "notes", "svg_selector", "artwork__title", "category__name", "tags__text"]
     ordering_fields = ["annotation_year", "created_at", "updated_at"]
-    

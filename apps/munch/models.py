@@ -24,7 +24,6 @@ DOCUMENT_TYPE_CHOICES = [
 ]
 
 ANNOTATION_SOURCE_CHOICES = [
-    ("annotorious", _("Annotorious")),
     ("manual", _("Manual")),
     ("imported", _("Imported")),
 ]
@@ -66,20 +65,64 @@ def parse_svg_polygons(value: str) -> list[list[dict[str, float]]]:
     return polygons
 
 
-class PaintingObject(AbstractBaseModel):
-    """Core metadata for an Edvard Munch painting or painted surface."""
+class Artist(models.Model):
+    """Controlled list of artists."""
 
-    title = models.CharField(max_length=256, verbose_name=_("Title"))
-    artist = models.CharField(max_length=256, default="Edvard Munch", verbose_name=_("Artist"))
-    inventory_number = models.CharField(max_length=128, blank=True, verbose_name=_("Inventory number"))
-    object_year = models.ForeignKey("Year", on_delete=models.SET_NULL, related_name="painting_objects", blank=True, null=True, verbose_name=_("Object year"))
-    material = models.CharField(max_length=256, blank=True, verbose_name=_("Material"))
-    technique = models.CharField(max_length=256, blank=True, verbose_name=_("Technique"))
-    description = models.TextField(blank=True, verbose_name=_("Description"))
+    name = models.CharField(max_length=256, unique=True, verbose_name=_("Name"))
 
     class Meta:
-        verbose_name = _("Painting object")
-        verbose_name_plural = _("Painting objects")
+        verbose_name = _("Artist")
+        verbose_name_plural = _("Artists")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Material(models.Model):
+    """Controlled list of materials."""
+
+    name = models.CharField(max_length=256, unique=True, verbose_name=_("Name"))
+
+    class Meta:
+        verbose_name = _("Material")
+        verbose_name_plural = _("Materials")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Technique(models.Model):
+    """Controlled list of techniques."""
+
+    name = models.CharField(max_length=256, unique=True, verbose_name=_("Name"))
+
+    class Meta:
+        verbose_name = _("Technique")
+        verbose_name_plural = _("Techniques")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Artwork(AbstractBaseModel):
+    """Core metadata for an Edvard Munch artwork (painting, mosaic, etc.)."""
+
+    title = models.CharField(max_length=256, verbose_name=_("Title"))
+    artist = models.ForeignKey("Artist", on_delete=models.SET_NULL, related_name="artworks", blank=True, null=True, verbose_name=_("Artist"))
+    inventory_number = models.CharField(max_length=128, blank=True, verbose_name=_("Inventory number"))
+    creation_year = models.PositiveIntegerField(blank=True, null=True, verbose_name=_("Creation year"))
+    materials = models.ManyToManyField("Material", blank=True, related_name="artworks", verbose_name=_("Materials"))
+    techniques = models.ManyToManyField("Technique", blank=True, related_name="artworks", verbose_name=_("Techniques"))
+    description = models.TextField(blank=True, verbose_name=_("Description"))
+    width = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name=_("Width (cm)"))
+    height = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name=_("Height (cm)"))
+
+    class Meta:
+        verbose_name = _("Artwork")
+        verbose_name_plural = _("Artworks")
         ordering = ["title"]
 
     def __str__(self):
@@ -122,13 +165,13 @@ class AnnotationCategory(AbstractBaseModel):
 
 
 class Image(AbstractImageModel):
-    """Image representation of the painting, e.g. orthophoto or topographical view."""
+    """Image representation of an artwork, e.g. orthophoto or topographical view."""
 
-    painting = models.ForeignKey(
-        PaintingObject,
+    artwork = models.ForeignKey(
+        Artwork,
         on_delete=models.CASCADE,
         related_name="images",
-        verbose_name=_("Painting object"),
+        verbose_name=_("Artwork"),
     )
     image_type = models.CharField(
         max_length=32,
@@ -150,13 +193,13 @@ class Image(AbstractImageModel):
         return f"{self.get_image_type_display()}"
 
 class Mesh(AbstractBaseModel):
-    """3D mesh or related geometric model for the painting surface."""
+    """3D mesh or related geometric model for an artwork."""
 
-    painting = models.ForeignKey(
-        PaintingObject,
+    artwork = models.ForeignKey(
+        Artwork,
         on_delete=models.CASCADE,
         related_name="meshes",
-        verbose_name=_("Painting object"),
+        verbose_name=_("Artwork"),
     )
     title = models.CharField(max_length=256, verbose_name=_("Title"))
     mesh_file = models.FileField(upload_to="munch/meshes/", verbose_name=_("Mesh file"))
@@ -173,13 +216,13 @@ class Mesh(AbstractBaseModel):
 
 
 class PaintingDocument(AbstractBaseModel):
-    """Downloadable documents associated with a painting object."""
+    """Downloadable documents associated with an artwork."""
 
-    painting = models.ForeignKey(
-        PaintingObject,
+    artwork = models.ForeignKey(
+        Artwork,
         on_delete=models.CASCADE,
         related_name="documents",
-        verbose_name=_("Painting object"),
+        verbose_name=_("Artwork"),
     )
     title = models.CharField(max_length=256, verbose_name=_("Title"))
     document_type = models.CharField(
@@ -201,43 +244,24 @@ class PaintingDocument(AbstractBaseModel):
 
 
 class VisualAnnotation(AbstractBaseModel):
-    """Polygon or multipolygon visual annotation connected to an image and category."""
+    """Polygon or multipolygon visual annotation connected to an artwork and category."""
 
-    # painting = models.ForeignKey(
-    #     PaintingObject,
-    #     on_delete=models.CASCADE,
-    #     related_name="annotations",
-    #     verbose_name=_("Painting object"),
-    # )
-    # geometry = models.JSONField(
-    #     default=list,
-    #     blank=True,
-    #     verbose_name=_("Geometry"),
-    #     help_text=_("List of polygons; each polygon is stored as x/y coordinate objects."),
-    # )
-
-    annotation_borders = models.TextField(
+    geometry = models.JSONField(
+        default=list,
         blank=True,
-        verbose_name=_("SVG selector"),
-        help_text=_("Raw SVG polygon snippet from Annotorious, e.g. <svg><polygon points=.../></svg>."),
+        verbose_name=_("Geometry"),
+        help_text=_("List of polygons; each polygon is stored as x/y coordinate objects."),
     )
-    notes = models.TextField(blank=True, verbose_name=_("Notes"))
-
-    image = models.ForeignKey(
-        Image,
+    artwork = models.ForeignKey(
+        Artwork,
         on_delete=models.CASCADE,
         related_name="annotations",
-        verbose_name=_("Image"),
+        blank=True,
+        null=True,
+        verbose_name=_("Artwork"),
     )
-    # mesh = models.ForeignKey(
-    #     Mesh,
-    #     on_delete=models.SET_NULL,
-    #     related_name="annotations",
-    #     blank=True,
-    #     null=True,
-    #     verbose_name=_("Mesh"),
-    # )
     title = models.CharField(max_length=256, blank=True, verbose_name=_("Title"))
+    alt_title = models.CharField(max_length=256, blank=True, verbose_name=_("Alternative title"))
     category = models.ForeignKey(
         AnnotationCategory,
         on_delete=models.PROTECT,
@@ -249,7 +273,7 @@ class VisualAnnotation(AbstractBaseModel):
     source = models.CharField(
         max_length=32,
         choices=ANNOTATION_SOURCE_CHOICES,
-        default="annotorious",
+        default="manual",
         verbose_name=_("Source"),
     )
     shape_type = models.CharField(
@@ -258,13 +282,38 @@ class VisualAnnotation(AbstractBaseModel):
         default="polygon",
         verbose_name=_("Shape type"),
     )
+    svg_selector = models.TextField(
+        blank=True,
+        verbose_name=_("SVG selector"),
+        help_text=_("Raw SVG polygon snippet from Annotorious, e.g. <svg><polygon points=.../></svg>."),
+    )
+    notes = models.TextField(blank=True, verbose_name=_("Notes"))
 
     class Meta:
         verbose_name = _("Visual annotation")
         verbose_name_plural = _("Visual annotations")
         ordering = ["annotation_year__year", "id"]
-        indexes = [models.Index(fields=["annotation_year"])]   
+        indexes = [models.Index(fields=["annotation_year"])]
+
+    def save(self, *args, **kwargs):
+        if self.svg_selector and not self.geometry:
+            self.geometry = parse_svg_polygons(self.svg_selector)
+
+        if len(self.geometry or []) > 1:
+            self.shape_type = "multipolygon"
+        else:
+            self.shape_type = "polygon"
+
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new and not self.title:
+            artwork_title = self.artwork.title if self.artwork_id else "Unknown"
+            auto_title = f"{artwork_title}:{self.pk}"
+            VisualAnnotation.objects.filter(pk=self.pk).update(title=auto_title)
+            self.title = auto_title
 
     def __str__(self):
-        label = self.title or self.category.name
-        return f"{label}"
+        label = self.alt_title or self.title or self.category.name
+        artwork_title = self.artwork.title if self.artwork_id else "–"
+        return f"{artwork_title} – {label}"

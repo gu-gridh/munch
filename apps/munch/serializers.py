@@ -6,14 +6,35 @@ from munch.abstract.serializers import DynamicDepthSerializer, GenericSerializer
 
 from .models import (
     AnnotationCategory,
+    Artist,
+    Artwork,
+    Material,
     Mesh,
     PaintingDocument,
     Image,
-    PaintingObject,
     Tag,
+    Technique,
     VisualAnnotation,
     Year,
 )
+
+
+class ArtistSerializer(GenericSerializer):
+    class Meta(GenericSerializer.Meta):
+        model = Artist
+        fields = ["id", "name"]
+
+
+class MaterialSerializer(GenericSerializer):
+    class Meta(GenericSerializer.Meta):
+        model = Material
+        fields = ["id", "name"]
+
+
+class TechniqueSerializer(GenericSerializer):
+    class Meta(GenericSerializer.Meta):
+        model = Technique
+        fields = ["id", "name"]
 
 
 class TagSerializer(GenericSerializer):
@@ -44,7 +65,7 @@ class ImageSerializer(GenericSerializer):
             "capture_year",
             "source_label",
             "sort_order",
-            "painting",
+            "artwork",
         ]
 
 
@@ -74,8 +95,8 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
     class Meta:
         model = VisualAnnotation
         fields = [
-            "id", "image", "category", "tags",
-            "title", "notes", "annotation_year", "source", "annotation_borders",
+            "id", "artwork", "category", "tags",
+            "title", "alt_title", "notes", "annotation_year", "source", "svg_selector",
         ]
 
     def to_representation(self, instance):
@@ -83,10 +104,10 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
             "id": str(instance.pk),
             "type": "Annotation",
             "target": {
-                "source": str(instance.image_id),
+                "source": str(instance.artwork_id),
                 "selector": {
                     "type": "SvgSelector",
-                    "value": instance.annotation_borders or "",
+                    "value": instance.svg_selector or "",
                 },
             },
             "category": instance.category_id,
@@ -97,6 +118,7 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
             } if instance.category_id else None,
             "tags": [{"id": t.pk, "text": t.text} for t in instance.tags.all()],
             "title": instance.title,
+            "alt_title": instance.alt_title,
             "annotation_year": instance.annotation_year_id,
             "notes": instance.notes,
             "source": instance.source,
@@ -107,12 +129,13 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
         if "target" in data:
             selector = data.get("target", {}).get("selector", {})
             flat_data = {
-                "annotation_borders": selector.get("value", ""),
-                "image": data.get("target", {}).get("source") or data.get("image"),
+                "svg_selector": selector.get("value", ""),
+                "artwork": data.get("target", {}).get("source") or data.get("artwork"),
                 "category": data.get("category"),
                 "title": data.get("title", ""),
+                "alt_title": data.get("alt_title", ""),
                 "notes": data.get("notes", ""),
-                "source": data.get("source", "annotorious"),
+                "source": data.get("source", "manual"),
                 "annotation_year": data.get("annotation_year"),
             }
         else:
@@ -120,12 +143,15 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
         return super().to_internal_value(flat_data)
 
 
-class PaintingObjectSerializer(DynamicDepthSerializer):
+class ArtworkSerializer(DynamicDepthSerializer):
     images = ImageSerializer(many=True, read_only=True)
     meshes = MeshSerializer(many=True, read_only=True)
     documents = PaintingDocumentSerializer(many=True, read_only=True)
     annotations = VisualAnnotationSerializer(many=True, read_only=True)
+    artist_detail = ArtistSerializer(source="artist", read_only=True)
+    materials_detail = MaterialSerializer(source="materials", many=True, read_only=True)
+    techniques_detail = TechniqueSerializer(source="techniques", many=True, read_only=True)
 
     class Meta(DynamicDepthSerializer.Meta):
-        model = PaintingObject
+        model = Artwork
         fields = "__all__"

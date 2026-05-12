@@ -6,7 +6,10 @@ from rest_framework import routers
 from . import views
 
 router = routers.DefaultRouter()
-router.register(r"panel", views.PaintingObjectViewSet)
+router.register(r"panel", views.ArtworkViewSet)
+router.register(r"artists", views.ArtistViewSet)
+router.register(r"materials", views.MaterialViewSet)
+router.register(r"techniques", views.TechniqueViewSet)
 router.register(r"painting-images", views.ImageViewSet)
 router.register(r"meshes", views.MeshViewSet)
 router.register(r"painting-documents", views.PaintingDocumentViewSet)
