@@ -84,9 +84,24 @@ class PaintingDocumentSerializer(GenericSerializer):
 class VisualAnnotationSerializer(DynamicDepthSerializer):
     category_detail = AnnotationCategorySerializer(source="category", read_only=True)
     tags_detail = TagSerializer(source="tags", many=True, read_only=True)
+    target = serializers.SerializerMethodField()
+
     class Meta(DynamicDepthSerializer.Meta):
         model = VisualAnnotation
-        fields = "__all__"
+        exclude = ["svg_selector"]
+
+    def get_target(self, obj):
+        return {
+            "selector": {
+                "type": "SvgSelector",
+                "value": obj.svg_selector or "",
+            }
+        }
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["type"] = "Annotation"
+        return data
 
 
 class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
