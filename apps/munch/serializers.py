@@ -138,16 +138,24 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
 
 
 class AnnotoriousMinimalSerializer(serializers.ModelSerializer):
-    """Minimal W3C Web Annotation serializer returning only id and svg_selector for Annotorious."""
+    """Minimal W3C Web Annotation serializer returning id, svg_selector, and category colour."""
 
     class Meta:
         model = VisualAnnotation
-        fields = ["id", "svg_selector"]
+        fields = ["id", "svg_selector", "category"]
 
     def to_representation(self, instance):
+        category = instance.category
         return {
             "id": instance.pk,
             "type": "Annotation",
+            "body": {
+                "category": {
+                    "id": category.pk,
+                    "name": category.name,
+                    "color": category.color,
+                } if category else None,
+            },
             "target": {
                 "selector": {
                     "type": "SvgSelector",
