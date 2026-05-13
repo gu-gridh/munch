@@ -114,11 +114,11 @@ class Artwork(AbstractBaseModel):
     artist = models.ForeignKey("Artist", on_delete=models.SET_NULL, related_name="artworks", blank=True, null=True, verbose_name=_("Artist"))
     inventory_number = models.CharField(max_length=128, blank=True, verbose_name=_("Inventory number"))
     creation_year = models.PositiveIntegerField(blank=True, null=True, verbose_name=_("Creation year"))
+    width = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name=_("Width (cm)"))
+    height = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name=_("Height (cm)"))
     materials = models.ManyToManyField("Material", blank=True, related_name="artworks", verbose_name=_("Materials"))
     techniques = models.ManyToManyField("Technique", blank=True, related_name="artworks", verbose_name=_("Techniques"))
     description = models.TextField(blank=True, verbose_name=_("Description"))
-    width = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name=_("Width (cm)"))
-    height = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name=_("Height (cm)"))
 
     class Meta:
         verbose_name = _("Artwork")
@@ -259,7 +259,7 @@ class VisualAnnotation(AbstractBaseModel):
         null=True,
         verbose_name=_("Artwork"),
     )
-    title = models.CharField(max_length=256, blank=True, verbose_name=_("Title"))
+    title = models.CharField(max_length=256, blank=True, editable=False, verbose_name=_("Title"))
     alt_title = models.CharField(max_length=256, blank=True, verbose_name=_("Alternative title"))
     category = models.ForeignKey(
         AnnotationCategory,
@@ -291,14 +291,11 @@ class VisualAnnotation(AbstractBaseModel):
         indexes = [models.Index(fields=["annotation_year"])]
 
     def save(self, *args, **kwargs):
-        is_new = self.pk is None
         super().save(*args, **kwargs)
-
-        if is_new and not self.title:
-            artwork_title = self.artwork.title if self.artwork_id else "Unknown"
-            auto_title = f"{artwork_title}:{self.pk}"
-            VisualAnnotation.objects.filter(pk=self.pk).update(title=auto_title)
-            self.title = auto_title
+        artwork_title = self.artwork.title if self.artwork_id else "Unknown"
+        auto_title = f"{artwork_title}:{self.pk}"
+        VisualAnnotation.objects.filter(pk=self.pk).update(title=auto_title)
+        self.title = auto_title
 
     def __str__(self):
         label = self.alt_title or self.title or self.category.name

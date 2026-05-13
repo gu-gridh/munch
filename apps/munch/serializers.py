@@ -88,6 +88,7 @@ class VisualAnnotationSerializer(DynamicDepthSerializer):
     class Meta(DynamicDepthSerializer.Meta):
         model = VisualAnnotation
         fields = "__all__"
+        read_only_fields = ["title"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -109,8 +110,9 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
         model = VisualAnnotation
         fields = [
             "id", "artwork", "category", "tags",
-            "title", "alt_title", "notes", "annotation_year", "source", "svg_selector",
+            "alt_title", "notes", "annotation_year", "source", "svg_selector",
         ]
+        read_only_fields = ["title"]
 
     def to_representation(self, instance):
         return {
@@ -145,7 +147,6 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
                 "svg_selector": selector.get("value", ""),
                 "artwork": data.get("target", {}).get("source") or data.get("artwork"),
                 "category": data.get("category"),
-                "title": data.get("title", ""),
                 "alt_title": data.get("alt_title", ""),
                 "notes": data.get("notes", ""),
                 "source": data.get("source", "manual"),
