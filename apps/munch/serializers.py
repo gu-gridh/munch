@@ -158,10 +158,8 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
 
 
 class ArtworkSerializer(DynamicDepthSerializer):
-    images = ImageSerializer(many=True, read_only=True)
-    meshes = MeshSerializer(many=True, read_only=True)
+
     documents = PaintingDocumentSerializer(many=True, read_only=True)
-    annotations = VisualAnnotationSerializer(many=True, read_only=True)
     artist_detail = ArtistSerializer(source="artist", read_only=True)
     materials_detail = MaterialSerializer(source="materials", many=True, read_only=True)
     techniques_detail = TechniqueSerializer(source="techniques", many=True, read_only=True)

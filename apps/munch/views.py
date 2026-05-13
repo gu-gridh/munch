@@ -114,6 +114,25 @@ class MeshFilter(django_filters.FilterSet):
         model = Mesh
         fields = ["artwork", "mesh_format", "published"]
 
+class VisualAnnotationFilter(django_filters.FilterSet):
+    panel = django_filters.CharFilter(method="filter_by_panel")
+    panel_id = django_filters.NumberFilter(field_name="artwork", lookup_expr="exact")
+
+    def filter_by_panel(self, queryset, name, value):
+        return queryset.filter(artwork__title__iexact=value.lower())
+
+    class Meta:
+        model = VisualAnnotation
+        fields = {
+            "category": ["exact"],
+            "tags": ["exact"],
+            "annotation_year": ["exact", "gte", "lte"],
+            "source": ["exact"],
+            "shape_type": ["exact"],
+            "published": ["exact"],
+        }
+
+
 class ArtistViewSet(DynamicDepthViewSet):
     queryset = Artist.objects.all()
     serializer_class = ArtistSerializer
@@ -143,8 +162,6 @@ class ArtworkViewSet(DynamicDepthViewSet):
     """API endpoint for artwork metadata and nested annotation resources."""
 
     queryset = Artwork.objects.filter(published=True).prefetch_related(
-        "images",
-        "meshes",
         "documents",
         "materials",
         "techniques",
@@ -217,15 +234,7 @@ class VisualAnnotationViewSet(DynamicDepthViewSet):
     ).prefetch_related("tags")
     serializer_class = VisualAnnotationSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_fields = {
-        "artwork": ["exact"],
-        "category": ["exact"],
-        "tags": ["exact"],
-        "annotation_year": ["exact", "gte", "lte"],
-        "source": ["exact"],
-        "shape_type": ["exact"],
-        "published": ["exact"],
-    }
+    filterset_class = VisualAnnotationFilter
     search_fields = ["title", "alt_title", "notes", "svg_selector", "artwork__title", "category__name", "tags__text"]
     ordering_fields = ["annotation_year", "created_at", "updated_at"]
 
@@ -287,14 +296,6 @@ class SearchViewSet(DynamicDepthViewSet):
     ).prefetch_related("tags")
     serializer_class = VisualAnnotationSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_fields = {
-        "artwork": ["exact"],
-        "category": ["exact"],
-        "tags": ["exact"],
-        "annotation_year": ["exact", "gte", "lte"],
-        "source": ["exact"],
-        "shape_type": ["exact"],
-        "published": ["exact"],
-    }
+    filterset_class = VisualAnnotationFilter
     search_fields = ["title", "alt_title", "notes", "svg_selector", "artwork__title", "category__name", "tags__text"]
     ordering_fields = ["annotation_year", "created_at", "updated_at"]
