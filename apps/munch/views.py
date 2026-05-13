@@ -23,6 +23,7 @@ from .models import (
 from .serializers import (
     AnnotationCategorySerializer,
     AnnotoriousAnnotationSerializer,
+    AnnotoriousMinimalSerializer,
     ArtistSerializer,
     ArtworkSerializer,
     MaterialSerializer,
@@ -133,6 +134,22 @@ class VisualAnnotationFilter(django_filters.FilterSet):
         }
 
 
+class AnnotoriousFilter(VisualAnnotationFilter):
+    """Extends VisualAnnotationFilter to treat 'all' as no-op for category, tags, and annotation_year."""
+
+    category = django_filters.CharFilter(method="filter_or_all")
+    tags = django_filters.CharFilter(method="filter_or_all")
+    annotation_year = django_filters.CharFilter(method="filter_or_all")
+
+    def filter_or_all(self, queryset, name, value):
+        if value == "all":
+            return queryset
+        try:
+            return queryset.filter(**{name: int(value)})
+        except (ValueError, TypeError):
+            return queryset
+
+
 class ArtistViewSet(DynamicDepthViewSet):
     queryset = Artist.objects.all()
     serializer_class = ArtistSerializer
@@ -235,7 +252,7 @@ class VisualAnnotationViewSet(DynamicDepthViewSet):
     serializer_class = VisualAnnotationSerializer
     filter_backends = SEARCH_AND_FILTER
     filterset_class = VisualAnnotationFilter
-    search_fields = ["title", "alt_title", "notes", "svg_selector", "artwork__title", "category__name", "tags__text"]
+    search_fields = ["title", "alt_title", "notes", "artwork__title", "category__name", "tags__text"]
     ordering_fields = ["annotation_year", "created_at", "updated_at"]
 
     @action(detail=False, methods=["get"])
@@ -285,17 +302,33 @@ class VisualAnnotationViewSet(DynamicDepthViewSet):
         serializer.save()
         return Response(serializer.data)
 
-# Filter or search API
-# Filter based on year, categories, tags
-class SearchViewSet(DynamicDepthViewSet):
-    """Alias for visual annotations with the same filters/search but a different endpoint name."""
 
-    queryset = VisualAnnotation.objects.filter(published=True).select_related(
-        "artwork",
-        "category",
-    ).prefetch_related("tags")
-    serializer_class = VisualAnnotationSerializer
+class AnnoationViewSet(VisualAnnotationViewSet):
+    """
+    Simplified W3C Web Annotation endpoint for Annotorious.
+
+    Returns only id + svg_selector in W3C format::
+
+        [
+          {
+            "id": 1,
+            "type": "Annotation",
+            "target": {"selector": {"type": "SvgSelector", "value": "<svg>...</svg>"}}
+          },
+          ...
+        ]
+
+    Supports all VisualAnnotationFilter params (panel, panel_id, source, shape_type,
+    published). Pass ``category=all``, ``tags=all``, or ``annotation_year=all`` to skip
+    filtering on those fields and return all values.
+    """
+
+    serializer_class = AnnotoriousMinimalSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_class = VisualAnnotationFilter
-    search_fields = ["title", "alt_title", "notes", "svg_selector", "artwork__title", "category__name", "tags__text"]
+    filterset_class = AnnotoriousFilter
+    search_fields = ["title", "alt_title", "notes", "artwork__title", "category__name", "tags__text"]
     ordering_fields = ["annotation_year", "created_at", "updated_at"]
+
+
+
+                

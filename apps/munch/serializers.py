@@ -90,17 +90,6 @@ class VisualAnnotationSerializer(DynamicDepthSerializer):
         fields = "__all__"
         read_only_fields = ["title"]
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data.pop("svg_selector", None)
-        data["type"] = "Annotation"
-        data["target"] = {
-            "selector": {
-                "type": "SvgSelector",
-                "value": instance.svg_selector or "",
-            }
-        }
-        return data
 
 
 class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
@@ -110,21 +99,13 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
         model = VisualAnnotation
         fields = [
             "id", "artwork", "category", "tags",
-            "alt_title", "notes", "annotation_year", "source", "svg_selector",
+            "alt_title", "notes", "annotation_year", "source",
         ]
         read_only_fields = ["title"]
 
     def to_representation(self, instance):
+        # return in W3C format for Annotorious frontend
         return {
-            "id": str(instance.pk),
-            "type": "Annotation",
-            "target": {
-                "source": str(instance.artwork_id),
-                "selector": {
-                    "type": "SvgSelector",
-                    "value": instance.svg_selector or "",
-                },
-            },
             "category": instance.category_id,
             "category_detail": {
                 "id": instance.category.pk,
@@ -144,7 +125,6 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
         if "target" in data:
             selector = data.get("target", {}).get("selector", {})
             flat_data = {
-                "svg_selector": selector.get("value", ""),
                 "artwork": data.get("target", {}).get("source") or data.get("artwork"),
                 "category": data.get("category"),
                 "alt_title": data.get("alt_title", ""),
@@ -155,6 +135,26 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
         else:
             flat_data = data
         return super().to_internal_value(flat_data)
+
+
+class AnnotoriousMinimalSerializer(serializers.ModelSerializer):
+    """Minimal W3C Web Annotation serializer returning only id and svg_selector for Annotorious."""
+
+    class Meta:
+        model = VisualAnnotation
+        fields = ["id", "svg_selector"]
+
+    def to_representation(self, instance):
+        return {
+            "id": instance.pk,
+            "type": "Annotation",
+            "target": {
+                "selector": {
+                    "type": "SvgSelector",
+                    "value": instance.svg_selector,
+                }
+            },
+        }
 
 
 class ArtworkSerializer(DynamicDepthSerializer):

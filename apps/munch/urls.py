@@ -17,7 +17,7 @@ router.register(r"annotation-categories", views.AnnotationCategoryViewSet)
 router.register(r"tags", views.TagViewSet)
 router.register(r"years", views.YearViewSet)
 router.register(r"visual-annotations", views.VisualAnnotationViewSet)
-router.register(r"search", views.SearchViewSet, basename="search")  # Alias for visual annotations
+router.register(r"annotation", views.AnnoationViewSet, basename="annotation")  # Alias for visual annotations       
 
 urlpatterns = [
     path("api/", include(router.urls)),
