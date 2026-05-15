@@ -118,6 +118,8 @@ class MeshFilter(django_filters.FilterSet):
 class VisualAnnotationFilter(django_filters.FilterSet):
     panel = django_filters.CharFilter(method="filter_by_panel")
     panel_id = django_filters.NumberFilter(field_name="artwork", lookup_expr="exact")
+    category = django_filters.ModelMultipleChoiceFilter(queryset=AnnotationCategory.objects.all())
+    tags = django_filters.ModelMultipleChoiceFilter(queryset=Tag.objects.all())
 
     def filter_by_panel(self, queryset, name, value):
         return queryset.filter(artwork__title__iexact=value.lower())
@@ -125,8 +127,6 @@ class VisualAnnotationFilter(django_filters.FilterSet):
     class Meta:
         model = VisualAnnotation
         fields = {
-            "category": ["exact"],
-            "tags": ["exact"],
             "annotation_year": ["exact", "gte", "lte"],
             "source": ["exact"],
             "shape_type": ["exact"],
@@ -142,10 +142,14 @@ class AnnotoriousFilter(VisualAnnotationFilter):
     annotation_year = django_filters.CharFilter(method="filter_or_all")
 
     def filter_or_all(self, queryset, name, value):
-        if value == "all":
+        raw_values = self.data.getlist(name)
+        if not raw_values or "all" in raw_values:
             return queryset
         try:
-            return queryset.filter(**{name: int(value)})
+            ids = [int(v) for v in raw_values if v]
+            if not ids:
+                return queryset
+            return queryset.filter(**{f"{name}__in": ids}).distinct()
         except (ValueError, TypeError):
             return queryset
 
@@ -247,8 +251,7 @@ class VisualAnnotationViewSet(DynamicDepthViewSet):
 
     queryset = VisualAnnotation.objects.filter(published=True).select_related(
         "artwork",
-        "category",
-    ).prefetch_related("tags")
+    ).prefetch_related("category", "tags")
     serializer_class = VisualAnnotationSerializer
     filter_backends = SEARCH_AND_FILTER
     filterset_class = VisualAnnotationFilter

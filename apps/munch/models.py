@@ -231,12 +231,20 @@ class PaintingDocument(AbstractBaseModel):
         default="pdf",
         verbose_name=_("Document type"),
     )
+    year = models.ForeignKey(
+        Year,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="documents",
+        verbose_name=_("Year"),
+    )
     file = models.FileField(upload_to="munch/documents/", verbose_name=_("File"))
     description = models.TextField(blank=True, verbose_name=_("Description"))
 
     class Meta:
-        verbose_name = _("Painting document")
-        verbose_name_plural = _("Painting documents")
+        verbose_name = _("Document")
+        verbose_name_plural = _("Documents")
         ordering = ["title"]
 
     def __str__(self):
@@ -261,9 +269,9 @@ class VisualAnnotation(AbstractBaseModel):
     )
     title = models.CharField(max_length=256, blank=True, editable=False, verbose_name=_("Title"))
     alt_title = models.CharField(max_length=256, blank=True, verbose_name=_("Alternative title"))
-    category = models.ForeignKey(
+    category = models.ManyToManyField(
         AnnotationCategory,
-        on_delete=models.PROTECT,
+        blank=True,
         related_name="annotations",
         verbose_name=_("Category"),
     )
@@ -298,6 +306,9 @@ class VisualAnnotation(AbstractBaseModel):
         self.title = auto_title
 
     def __str__(self):
-        label = self.alt_title or self.title or self.category.name
+        label = self.alt_title or self.title
+        if not label:
+            first_cat = self.category.first()
+            label = first_cat.name if first_cat else "–"
         artwork_title = self.artwork.title if self.artwork_id else "–"
         return f"{artwork_title} – {label}"

@@ -82,7 +82,7 @@ class PaintingDocumentSerializer(GenericSerializer):
 
 
 class VisualAnnotationSerializer(DynamicDepthSerializer):
-    category_detail = AnnotationCategorySerializer(source="category", read_only=True)
+    category_detail = AnnotationCategorySerializer(source="category", many=True, read_only=True)
     tags_detail = TagSerializer(source="tags", many=True, read_only=True)
 
     class Meta(DynamicDepthSerializer.Meta):
@@ -106,12 +106,10 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         # return in W3C format for Annotorious frontend
         return {
-            "category": instance.category_id,
-            "category_detail": {
-                "id": instance.category.pk,
-                "name": instance.category.name,
-                "color": instance.category.color,
-            } if instance.category_id else None,
+            "categories": [
+                {"id": cat.pk, "name": cat.name, "color": cat.color}
+                for cat in instance.category.all()
+            ],
             "tags": [{"id": t.pk, "text": t.text} for t in instance.tags.all()],
             "title": instance.title,
             "alt_title": instance.alt_title,
@@ -123,10 +121,14 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         # Accept W3C format (from Annotorious) or flat format
         if "target" in data:
-            selector = data.get("target", {}).get("selector", {})
+            category_raw = data.get("category")
             flat_data = {
                 "artwork": data.get("target", {}).get("source") or data.get("artwork"),
-                "category": data.get("category"),
+                "category": (
+                    category_raw if isinstance(category_raw, list)
+                    else [category_raw] if category_raw is not None
+                    else []
+                ),
                 "alt_title": data.get("alt_title", ""),
                 "notes": data.get("notes", ""),
                 "source": data.get("source", "manual"),
@@ -138,23 +140,21 @@ class AnnotoriousAnnotationSerializer(serializers.ModelSerializer):
 
 
 class AnnotoriousMinimalSerializer(serializers.ModelSerializer):
-    """Minimal W3C Web Annotation serializer returning id, svg_selector, and category colour."""
+    """Minimal W3C Web Annotation serializer returning id, svg_selector, and category colours."""
 
     class Meta:
         model = VisualAnnotation
         fields = ["id", "svg_selector", "category"]
 
     def to_representation(self, instance):
-        category = instance.category
         return {
             "id": instance.pk,
             "type": "Annotation",
             "body": {
-                "category": {
-                    "id": category.pk,
-                    "name": category.name,
-                    "color": category.color,
-                } if category else None,
+                "categories": [
+                    {"id": cat.pk, "name": cat.name, "color": cat.color}
+                    for cat in instance.category.all()
+                ],
             },
             "target": {
                 "selector": {

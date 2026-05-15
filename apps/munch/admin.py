@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db.models import TextField
+from django.forms import Textarea
 
 from .models import (
     AnnotationCategory,
@@ -82,8 +84,8 @@ class MeshAdmin(admin.ModelAdmin):
 
 @admin.register(PaintingDocument)
 class PaintingDocumentAdmin(admin.ModelAdmin):
-    list_display = ["title", "artwork", "document_type", "published"]
-    list_filter = ["document_type", "published"]
+    list_display = ["title", "artwork", "document_type", "year", "published"]
+    list_filter = ["document_type", "year", "published"]
     search_fields = ["title", "artwork__title", "description"]
     autocomplete_fields = ["artwork"]
 
@@ -109,8 +111,28 @@ class YearAdmin(admin.ModelAdmin):
 
 @admin.register(VisualAnnotation)
 class VisualAnnotationAdmin(admin.ModelAdmin):
-    list_display = ["title", "alt_title", "artwork", "category", "annotation_year", "shape_type", "published"]
+    list_display = ["title", "alt_title", "artwork", "get_categories", "annotation_year", "shape_type", "published"]
     list_filter = ["category", "shape_type", "annotation_year", "source", "published"]
     search_fields = ["title", "alt_title", "notes", "artwork__title", "category__name", "svg_selector"]
-    autocomplete_fields = ["artwork", "category", "tags"]
-    filter_horizontal = ["tags"]
+    autocomplete_fields = ["artwork"]
+    filter_horizontal = ["category", "tags"]
+    readonly_fields = ["title"]
+    formfield_overrides = {
+        TextField: {"widget": Textarea(attrs={"rows": 4})},
+    }
+    fieldsets = [
+        (None, {
+            "fields": ["artwork", "title", "alt_title", "category", "tags", "annotation_year", "source", "shape_type", "published"],
+        }),
+        ("Polygon coordinates", {
+            "fields": ["svg_selector"],
+        }),
+        ("Notes", {
+            "fields": ["notes"],
+            "classes": ["collapse"],
+        }),
+    ]
+
+    @admin.display(description="Categories")
+    def get_categories(self, obj):
+        return ", ".join(obj.category.values_list("name", flat=True))
