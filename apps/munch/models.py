@@ -267,8 +267,8 @@ class VisualAnnotation(AbstractBaseModel):
         null=True,
         verbose_name=_("Artwork"),
     )
-    title = models.CharField(max_length=256, blank=True, editable=False, verbose_name=_("Title"))
-    alt_title = models.CharField(max_length=256, blank=True, verbose_name=_("Alternative title"))
+    title = models.CharField(max_length=256, blank=True, editable=False, verbose_name=_("Annotation ID"))
+    alt_title = models.CharField(max_length=256, blank=True, verbose_name=_("Title"))
     category = models.ManyToManyField(
         AnnotationCategory,
         blank=True,
