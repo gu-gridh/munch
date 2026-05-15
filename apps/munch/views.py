@@ -1,6 +1,7 @@
 """Viewsets for the Edvard Munch annotation backend."""
 
 import django_filters
+from django.db.models import Q
 from rest_framework import filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -73,7 +74,8 @@ class YearFilter(django_filters.FilterSet):
 
     def filter_by_panel(self, queryset, name, value):
         return queryset.filter(
-            annotations__artwork__title__iexact=value.lower()
+            Q(annotations__artwork__title__iexact=value.lower())
+            | Q(documents__artwork__title__iexact=value.lower())
         ).distinct()
 
     class Meta:
@@ -118,10 +120,21 @@ class MeshFilter(django_filters.FilterSet):
 
 class PaintingDocumentFilter(django_filters.FilterSet):
     panel = django_filters.CharFilter(method="filter_by_panel")
-    year = django_filters.NumberFilter(field_name="year", lookup_expr="exact")
+    year = django_filters.CharFilter(method="filter_year")
 
     def filter_by_panel(self, queryset, name, value):
         return queryset.filter(artwork__title__iexact=value.lower())
+
+    def filter_year(self, queryset, name, value):
+        raw_values = self.data.getlist("year")
+        split_values = [v.strip() for entry in raw_values for v in entry.split(",") if v.strip()]
+        if not split_values:
+            return queryset
+        try:
+            ids = [int(v) for v in split_values]
+            return queryset.filter(year__in=ids).distinct()
+        except (ValueError, TypeError):
+            return queryset
 
     class Meta:
         model = PaintingDocument
