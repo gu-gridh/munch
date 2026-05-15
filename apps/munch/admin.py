@@ -89,6 +89,13 @@ class PaintingDocumentAdmin(admin.ModelAdmin):
     search_fields = ["title", "artwork__title", "description"]
     autocomplete_fields = ["artwork"]
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "year":
+            latest = Year.objects.order_by("-year").first()
+            if latest:
+                kwargs["initial"] = latest.pk
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 @admin.register(AnnotationCategory)
 class AnnotationCategoryAdmin(admin.ModelAdmin):
@@ -132,6 +139,13 @@ class VisualAnnotationAdmin(admin.ModelAdmin):
             "classes": ["collapse"],
         }),
     ]
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "annotation_year":
+            latest = Year.objects.order_by("-year").first()
+            if latest:
+                kwargs["initial"] = latest.pk
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     @admin.display(description="Categories")
     def get_categories(self, obj):
