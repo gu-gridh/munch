@@ -121,11 +121,11 @@ class VisualAnnotationAdmin(admin.ModelAdmin):
         TextField: {"widget": Textarea(attrs={"rows": 4})},
     }
     fieldsets = [
-        (None, {
-            "fields": ["artwork", "title", "alt_title", "category", "tags", "annotation_year", "source", "shape_type", "published"],
-        }),
         ("Polygon coordinates", {
             "fields": ["svg_selector"],
+        }),
+        (None, {
+            "fields": ["artwork", "title", "alt_title", "category", "tags", "annotation_year", "source", "shape_type", "published"],
         }),
         ("Notes", {
             "fields": ["notes"],
