@@ -143,10 +143,12 @@ class AnnotoriousFilter(VisualAnnotationFilter):
 
     def filter_or_all(self, queryset, name, value):
         raw_values = self.data.getlist(name)
-        if not raw_values or "all" in raw_values:
+        # Support both comma-separated (?tags=1,2) and repeated (?tags=1&tags=2)
+        split_values = [v.strip() for entry in raw_values for v in entry.split(",") if v.strip()]
+        if not split_values or "all" in split_values:
             return queryset
         try:
-            ids = [int(v) for v in raw_values if v]
+            ids = [int(v) for v in split_values]
             if not ids:
                 return queryset
             return queryset.filter(**{f"{name}__in": ids}).distinct()
