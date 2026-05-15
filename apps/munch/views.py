@@ -115,6 +115,18 @@ class MeshFilter(django_filters.FilterSet):
         model = Mesh
         fields = ["artwork", "mesh_format", "published"]
 
+
+class PaintingDocumentFilter(django_filters.FilterSet):
+    panel = django_filters.CharFilter(method="filter_by_panel")
+    year = django_filters.NumberFilter(field_name="year__year", lookup_expr="exact")
+
+    def filter_by_panel(self, queryset, name, value):
+        return queryset.filter(artwork__title__iexact=value.lower())
+
+    class Meta:
+        model = PaintingDocument
+        fields = ["artwork", "document_type", "published"]
+
 class VisualAnnotationFilter(django_filters.FilterSet):
     panel = django_filters.CharFilter(method="filter_by_panel")
     panel_id = django_filters.NumberFilter(field_name="artwork", lookup_expr="exact")
@@ -216,12 +228,12 @@ class MeshViewSet(DynamicDepthViewSet):
 
 
 class PaintingDocumentViewSet(DynamicDepthViewSet):
-    queryset = PaintingDocument.objects.filter(published=True).select_related("artwork")
+    queryset = PaintingDocument.objects.filter(published=True).select_related("artwork", "year")
     serializer_class = PaintingDocumentSerializer
     filter_backends = SEARCH_AND_FILTER
-    filterset_fields = ["artwork", "document_type", "published"]
+    filterset_class = PaintingDocumentFilter
     search_fields = ["title", "description", "artwork__title"]
-    ordering_fields = ["title", "created_at"]
+    ordering_fields = ["title", "year__year", "created_at"]
 
 
 class AnnotationCategoryViewSet(DynamicDepthViewSet):
