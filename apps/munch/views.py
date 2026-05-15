@@ -118,7 +118,7 @@ class MeshFilter(django_filters.FilterSet):
 
 class PaintingDocumentFilter(django_filters.FilterSet):
     panel = django_filters.CharFilter(method="filter_by_panel")
-    year = django_filters.NumberFilter(field_name="year__year", lookup_expr="exact")
+    year = django_filters.NumberFilter(field_name="year", lookup_expr="exact")
 
     def filter_by_panel(self, queryset, name, value):
         return queryset.filter(artwork__title__iexact=value.lower())
