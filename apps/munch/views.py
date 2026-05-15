@@ -118,6 +118,7 @@ class MeshFilter(django_filters.FilterSet):
 class VisualAnnotationFilter(django_filters.FilterSet):
     panel = django_filters.CharFilter(method="filter_by_panel")
     panel_id = django_filters.NumberFilter(field_name="artwork", lookup_expr="exact")
+    id = django_filters.NumberFilter(field_name="id", lookup_expr="exact")
     category = django_filters.ModelMultipleChoiceFilter(queryset=AnnotationCategory.objects.all())
     tags = django_filters.ModelMultipleChoiceFilter(queryset=Tag.objects.all())
 
