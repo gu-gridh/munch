@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.db.models import TextField
 from django.forms import Textarea
+from django.utils.html import format_html
+from django.conf import settings
+
 
 from .models import (
     AnnotationCategory,
@@ -73,6 +76,17 @@ class ImageAdmin(admin.ModelAdmin):
     search_fields = ["artwork__title", "caption", "source_label"]
     autocomplete_fields = ["artwork"]
 
+    def image_preview(self, obj):
+        if 'tif' in obj.file.path:
+            return format_html(f'<img src="{settings.IIIF_URL}{obj.iiif_file}/full/full/0/default.jpg" height="300" />')
+        else:
+            return format_html(f'<img src="{settings.ORIGINAL_URL}/{obj.file}" height="300" />')
+
+    def thumbnail_preview(self, obj):
+        if 'tif' in obj.file.path:
+            return format_html(f'<img src="{settings.IIIF_URL}{obj.iiif_file}/full/full/0/default.jpg" height="100" />')
+        else:
+            return format_html(f'<img src="{settings.ORIGINAL_URL}/{obj.file}" height="100" />')
 
 @admin.register(Mesh)
 class MeshAdmin(admin.ModelAdmin):

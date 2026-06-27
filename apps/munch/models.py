@@ -6,7 +6,7 @@ from colorfield.fields import ColorField
 from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
 
-from munch.abstract.models import AbstractBaseModel, AbstractImageModel, AbstractTagModel
+from munch.abstract.models import AbstractBaseModel, AbstractImageModel, AbstractTIFFImageModel, AbstractTagModel
 
 
 IMAGE_TYPE_CHOICES = [
@@ -164,7 +164,7 @@ class AnnotationCategory(AbstractBaseModel):
         return self.name
 
 
-class Image(AbstractImageModel):
+class Image(AbstractTIFFImageModel):
     """Image representation of an artwork, e.g. orthophoto or topographical view."""
 
     artwork = models.ForeignKey(
@@ -273,7 +273,7 @@ class VisualAnnotation(AbstractBaseModel):
         AnnotationCategory,
         blank=True,
         related_name="annotations",
-        verbose_name=_("Category"),
+        verbose_name=_("Categories"),
     )
     tags = models.ManyToManyField(Tag, blank=True, related_name="visual_annotations", verbose_name=_("Tags"))
     annotation_year = models.ForeignKey(Year, on_delete=models.SET_NULL, related_name="annotations", blank=True, null=True, verbose_name=_("Annotation year"))
