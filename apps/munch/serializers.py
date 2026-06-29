@@ -60,6 +60,7 @@ class ImageSerializer(GenericSerializer):
             "id",
             "uuid",
             "file",
+            "iiif_file",
             "image_type",
             "caption",
             "capture_year",
@@ -154,6 +155,10 @@ class AnnotoriousMinimalSerializer(serializers.ModelSerializer):
                 "categories": [
                     {"id": cat.pk, "name": cat.name, "color": cat.color}
                     for cat in instance.category.all()
+                ],
+                "tags": [
+                    {"id": tag.pk, "text": tag.text}
+                    for tag in instance.tags.all()
                 ],
             },
             "target": {
