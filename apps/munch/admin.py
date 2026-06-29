@@ -4,6 +4,8 @@ from django.forms import Textarea
 from django.utils.html import format_html
 from django.conf import settings
 
+from munch.utils import DEFAULT_FIELDS
+
 
 from .models import (
     AnnotationCategory,
@@ -72,6 +74,7 @@ class ArtworkAdmin(admin.ModelAdmin):
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
     list_display = ["artwork", "image_type", "capture_year", "sort_order", "published"]
+    readonly_fields = ['iiif_file', *DEFAULT_FIELDS]
     list_filter = ["image_type", "capture_year", "published"]
     search_fields = ["artwork__title", "caption", "source_label"]
     autocomplete_fields = ["artwork"]
