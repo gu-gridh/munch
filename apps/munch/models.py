@@ -203,6 +203,7 @@ class Mesh(AbstractBaseModel):
     )
     title = models.CharField(max_length=256, verbose_name=_("Title"))
     mesh_file = models.FileField(upload_to="munch/meshes/", verbose_name=_("Mesh file"))
+    mesh_url = models.CharField(max_length=256, blank=True, null=True, verbose_name=_("Mesh url"))
     mesh_format = models.CharField(max_length=64, blank=True, verbose_name=_("Mesh format"))
     description = models.TextField(blank=True, verbose_name=_("Description"))
 
