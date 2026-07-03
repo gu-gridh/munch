@@ -1,0 +1,8 @@
+[
+    {
+      "name": "munch",
+      "managed": true,
+      "config": "MunchConfig"
+    }   
+]
+    

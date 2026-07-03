@@ -10,21 +10,20 @@ services:
       - .env
     environment:
       DB_HOST: db
-      DB_PORT: 5432
     depends_on:
       - db
 
   db:
-    image: postgres:16
-
+    image: docker.io/postgis/postgis:16-master
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
     environment:
-      - POSTGRES_DB=munch_dev
-      - POSTGRES_USER=munch_user
-      - POSTGRES_PASSWORD=changeme
+      DJANGO_SETTINGS_MODULE: munch.settings.development
+      DB_HOST: db
     ports:
-      - "55432:5432"
+      - "5431:5432"
 
 volumes:
   postgres_data:
