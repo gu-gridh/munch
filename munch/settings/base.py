@@ -35,7 +35,9 @@ load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-change-in-production')
-
+# Allow unlimited file upload size (e.g. for large mesh files)
+#DATA_UPLOAD_MAX_MEMORY_SIZE = None
+#FILE_UPLOAD_MAX_MEMORY_SIZE = None
 
 ALLOWED_HOSTS = [
     "localhost",
