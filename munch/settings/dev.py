@@ -28,3 +28,5 @@ STATIC_URL = "/static/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
 
+ORIGINAL_URL    = "media/"
+IIIF_URL        = "media/"
