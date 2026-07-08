@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db.models import TextField
-from django.forms import Textarea
+from django.forms import Textarea, ModelMultipleChoiceField
 from django.utils.html import format_html
 from django.conf import settings
 
@@ -42,6 +42,24 @@ class PaintingDocumentInline(admin.TabularInline):
 #     extra = 0
 #     autocomplete_fields = ["image", "mesh", "category"]
 
+class FullNameUserField(ModelMultipleChoiceField):
+    def label_from_instance(self, user):
+        return user.get_full_name() or user.get_username()
+
+
+class UserMixinAdmin:
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "contributors":
+            kwargs["queryset"] = (
+                db_field.remote_field.model.objects
+                .filter(is_superuser=False)
+                .distinct()
+            )
+            kwargs["form_class"] = FullNameUserField
+
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
 
 @admin.register(Artist)
 class ArtistAdmin(admin.ModelAdmin):
@@ -63,7 +81,8 @@ class TechniqueAdmin(admin.ModelAdmin):
 
 @admin.register(Artwork)
 class ArtworkAdmin(admin.ModelAdmin):
-    list_display = ["title", "artist", "inventory_number", "creation_year", "width", "height", "published"]
+    list_display = ["title", "artist", "inventory_number", "creation_year",
+                    "width", "height", "published"]
     list_filter = ["artist", "published"]
     search_fields = ["title", "inventory_number", "description"]
     filter_horizontal = ["materials", "techniques"]
@@ -73,23 +92,25 @@ class ArtworkAdmin(admin.ModelAdmin):
 
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
-    list_display = ["artwork", "image_type", "capture_year", "sort_order", "published"]
-    readonly_fields = ['iiif_file', *DEFAULT_FIELDS]
+    list_display = ["artwork", "image_type", "capture_year", "sort_order",
+                    "published", "thumbnail_preview"]
+    readonly_fields = ["image_preview", 'iiif_file', *DEFAULT_FIELDS]
     list_filter = ["image_type", "capture_year", "published"]
     search_fields = ["artwork__title", "caption", "source_label"]
     autocomplete_fields = ["artwork"]
 
     def image_preview(self, obj):
-        if 'tif' in obj.file.path:
-            return format_html(f'<img src="{settings.IIIF_URL}{obj.iiif_file}/full/full/0/default.jpg" height="300" />')
+        if obj.iiif_file:
+            return format_html(f'<img src="{settings.IIIF_URL}{obj.iiif_file}/full/,300/0/default.jpg"/>')
         else:
             return format_html(f'<img src="{settings.ORIGINAL_URL}/{obj.file}" height="300" />')
 
     def thumbnail_preview(self, obj):
-        if 'tif' in obj.file.path:
-            return format_html(f'<img src="{settings.IIIF_URL}{obj.iiif_file}/full/full/0/default.jpg" height="100" />')
+        if obj.iiif_file:
+            return format_html(f'<img src="{settings.IIIF_URL}{obj.iiif_file}/full/,100/0/default.jpg"/>')
         else:
             return format_html(f'<img src="{settings.ORIGINAL_URL}/{obj.file}" height="100" />')
+
 
 @admin.register(Mesh)
 class MeshAdmin(admin.ModelAdmin):
@@ -127,19 +148,20 @@ class TagAdmin(admin.ModelAdmin):
     list_filter = ["published"]
     search_fields = ["text"]
 
- 
+
 @admin.register(Year)
 class YearAdmin(admin.ModelAdmin):
     list_display = ["year"]
     search_fields = ["year"]
 
+
 @admin.register(VisualAnnotation)
-class VisualAnnotationAdmin(admin.ModelAdmin):
+class VisualAnnotationAdmin(UserMixinAdmin, admin.ModelAdmin):
     list_display = ["title", "alt_title", "artwork", "get_categories", "annotation_year", "shape_type", "published"]
     list_filter = ["category", "shape_type", "annotation_year", "source", "published"]
     search_fields = ["title", "alt_title", "notes", "artwork__title", "category__name", "svg_selector"]
     autocomplete_fields = ["artwork"]
-    filter_horizontal = ["category", "tags"]
+    filter_horizontal = ["category", "tags", "contributors"]
     readonly_fields = ["title"]
     formfield_overrides = {
         TextField: {"widget": Textarea(attrs={"rows": 4})},
@@ -149,7 +171,7 @@ class VisualAnnotationAdmin(admin.ModelAdmin):
             "fields": ["svg_selector"],
         }),
         (None, {
-            "fields": ["artwork", "title", "alt_title", "category", "tags", "annotation_year", "source", "shape_type", "published"],
+            "fields": ["artwork", "title", "alt_title", "category", "tags", "annotation_year", "source", "shape_type", "published", "contributors"],
         }),
         ("Notes", {
             "fields": ["notes"],

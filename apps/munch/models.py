@@ -3,6 +3,7 @@
 import re
 
 from colorfield.fields import ColorField
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -63,6 +64,13 @@ def parse_svg_polygons(value: str) -> list[list[dict[str, float]]]:
             polygons.append(points)
 
     return polygons
+
+
+class UserMixin(models.Model):
+    contributors = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="%(app_label)s_%(class)s_contributors")
+
+    class Meta:
+        abstract = True
 
 
 class Artist(models.Model):
@@ -252,7 +260,7 @@ class PaintingDocument(AbstractBaseModel):
         return self.title
 
 
-class VisualAnnotation(AbstractBaseModel):
+class VisualAnnotation(AbstractBaseModel, UserMixin):
     """Polygon or multipolygon visual annotation connected to an artwork and category."""
 
     svg_selector = models.TextField(
