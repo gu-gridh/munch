@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.db.models import TextField
-from django.forms import Textarea, ModelMultipleChoiceField
+from django.forms import Textarea
 from django.utils.html import format_html
 from django.conf import settings
 
+from .forms.fields import FullNameContributorField
 from munch.utils import DEFAULT_FIELDS
 
 
@@ -42,12 +43,7 @@ class PaintingDocumentInline(admin.TabularInline):
 #     extra = 0
 #     autocomplete_fields = ["image", "mesh", "category"]
 
-class FullNameUserField(ModelMultipleChoiceField):
-    def label_from_instance(self, user):
-        return user.get_full_name() or user.get_username()
-
-
-class UserMixinAdmin:
+class ContributorMixinAdmin:
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "contributors":
@@ -56,7 +52,7 @@ class UserMixinAdmin:
                 .filter(is_superuser=False)
                 .distinct()
             )
-            kwargs["form_class"] = FullNameUserField
+            kwargs["form_class"] = FullNameContributorField
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
@@ -156,7 +152,7 @@ class YearAdmin(admin.ModelAdmin):
 
 
 @admin.register(VisualAnnotation)
-class VisualAnnotationAdmin(UserMixinAdmin, admin.ModelAdmin):
+class VisualAnnotationAdmin(ContributorMixinAdmin, admin.ModelAdmin):
     list_display = ["title", "alt_title", "artwork", "get_categories", "annotation_year", "shape_type", "published"]
     list_filter = ["category", "shape_type", "annotation_year", "source", "published"]
     search_fields = ["title", "alt_title", "notes", "artwork__title", "category__name", "svg_selector"]

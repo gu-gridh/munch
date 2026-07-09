@@ -66,8 +66,9 @@ def parse_svg_polygons(value: str) -> list[list[dict[str, float]]]:
     return polygons
 
 
-class UserMixin(models.Model):
-    contributors = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="%(app_label)s_%(class)s_contributors")
+class ContributorMixin(models.Model):
+    contributors = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
+    related_name="%(app_label)s_%(class)s_contributors")
 
     class Meta:
         abstract = True
@@ -145,6 +146,7 @@ class Tag(AbstractTagModel):
         verbose_name_plural = _("Tags")
         ordering = ["text"]
 
+
 class Year(models.Model):
     year = models.PositiveIntegerField(unique=True, verbose_name=_("Year"))
 
@@ -155,6 +157,7 @@ class Year(models.Model):
 
     def __str__(self):
         return str(self.year)
+
 
 class AnnotationCategory(AbstractBaseModel):
     """Category / type of visual annotation, with frontend display color."""
@@ -199,6 +202,7 @@ class Image(AbstractTIFFImageModel):
 
     def __str__(self):
         return f"{self.get_image_type_display()}"
+
 
 class Mesh(AbstractBaseModel):
     """3D mesh or related geometric model for an artwork."""
@@ -260,7 +264,7 @@ class PaintingDocument(AbstractBaseModel):
         return self.title
 
 
-class VisualAnnotation(AbstractBaseModel, UserMixin):
+class VisualAnnotation(AbstractBaseModel, ContributorMixin):
     """Polygon or multipolygon visual annotation connected to an artwork and category."""
 
     svg_selector = models.TextField(

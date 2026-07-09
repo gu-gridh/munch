@@ -1,13 +1,16 @@
 """Viewsets for the Edvard Munch annotation backend."""
 
 import django_filters
-from django.db.models import Q
+from django.db.models import Q, Value
+from django.db.models.functions import Concat
+from django.contrib.auth.models import User
 from rest_framework import filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from munch.abstract.views import DynamicDepthViewSet
 
+from .forms.fields import FullNameContributorField
 from .models import (
     AnnotationCategory,
     Artist,
@@ -27,6 +30,7 @@ from .serializers import (
     AnnotoriousMinimalSerializer,
     ArtistSerializer,
     ArtworkSerializer,
+    ContributorSerializer,
     MaterialSerializer,
     MeshSerializer,
     PaintingDocumentSerializer,
@@ -42,6 +46,10 @@ SEARCH_AND_FILTER = DynamicDepthViewSet.filter_backends + [
     filters.SearchFilter,
     filters.OrderingFilter,
 ]
+
+
+class FullNameContributorFilter(django_filters.ModelMultipleChoiceFilter):
+    field_class = FullNameContributorField
 
 
 class ArtworkFilter(django_filters.FilterSet):
@@ -96,6 +104,24 @@ class AnnotationCategoryFilter(django_filters.FilterSet):
         fields = ["name", "published"]
 
 
+class ContributorsFilter(django_filters.FilterSet):
+    panel = django_filters.CharFilter(method="filter_by_contributor")
+
+    def filter_by_contributor(self, queryset, name, value):
+        queryset.annotate(
+                contributor_full_name=Concat(
+                    "contributors__first_name",
+                    Value(" "),
+                    "contributors__last_name",
+                )
+        ).filter(contributor_full_name__iexact=value
+                 ).distinct()
+
+    class Meta:
+        model = AnnotationCategory
+        fields = ["name", "published"]
+
+
 class ImageFilter(django_filters.FilterSet):
     panel = django_filters.CharFilter(method="filter_by_panel")
 
@@ -140,12 +166,14 @@ class PaintingDocumentFilter(django_filters.FilterSet):
         model = PaintingDocument
         fields = ["artwork", "document_type", "published"]
 
+
 class VisualAnnotationFilter(django_filters.FilterSet):
     panel = django_filters.CharFilter(method="filter_by_panel")
     panel_id = django_filters.NumberFilter(field_name="artwork", lookup_expr="exact")
     id = django_filters.NumberFilter(field_name="id", lookup_expr="exact")
     category = django_filters.ModelMultipleChoiceFilter(queryset=AnnotationCategory.objects.all())
     tags = django_filters.ModelMultipleChoiceFilter(queryset=Tag.objects.all())
+    contributors = FullNameContributorFilter(queryset=User.objects.filter(is_superuser=False).distinct())
 
     def filter_by_panel(self, queryset, name, value):
         return queryset.filter(artwork__title__iexact=value.lower())
@@ -266,6 +294,7 @@ class TagViewSet(DynamicDepthViewSet):
     search_fields = ["text"]
     ordering_fields = ["text", "created_at"]
 
+
 class YearViewSet(DynamicDepthViewSet):
     queryset = Year.objects.all()
     serializer_class = YearSerializer
@@ -273,6 +302,7 @@ class YearViewSet(DynamicDepthViewSet):
     filterset_class = YearFilter
     search_fields = ["year"]
     ordering_fields = ["year"]
+
 
 class VisualAnnotationViewSet(DynamicDepthViewSet):
     """API endpoint for polygon and multipolygon annotations with frontend filters."""
@@ -298,12 +328,14 @@ class VisualAnnotationViewSet(DynamicDepthViewSet):
         )
         categories = AnnotationCategory.objects.filter(annotations__in=queryset).distinct().order_by("name")
         tags = Tag.objects.filter(visual_annotations__in=queryset).distinct().order_by("text")
+        contributors = User.objects.filter(is_superuser=False).distinct()
 
         return Response(
             {
                 "years": years,
                 "categories": AnnotationCategorySerializer(categories, many=True).data,
                 "tags": TagSerializer(tags, many=True).data,
+                "contributors": ContributorSerializer(contributors, many=True).data,
             }
         )
 
@@ -359,7 +391,3 @@ class AnnoationViewSet(VisualAnnotationViewSet):
     filterset_class = AnnotoriousFilter
     search_fields = ["title", "alt_title", "notes", "artwork__title", "category__name", "tags__text"]
     ordering_fields = ["annotation_year", "created_at", "updated_at"]
-
-
-
-                

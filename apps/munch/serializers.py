@@ -1,6 +1,7 @@
 """Serializers for the Edvard Munch annotation backend."""
 
 from rest_framework import serializers
+from django.contrib.auth.models import User
 
 from munch.abstract.serializers import DynamicDepthSerializer, GenericSerializer
 
@@ -42,15 +43,28 @@ class TagSerializer(GenericSerializer):
         model = Tag
         fields = ["id", "text"]
 
+
 class YearSerializer(GenericSerializer):
     class Meta(GenericSerializer.Meta):
         model = Year
         fields = ["id", "year"]
 
+
 class AnnotationCategorySerializer(GenericSerializer):
     class Meta(GenericSerializer.Meta):
         model = AnnotationCategory
         fields = ["id", "name", "color", "description"]
+
+
+class ContributorSerializer(GenericSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta(GenericSerializer.Meta):
+        model = User
+        fields = ["id", "full_name"]
+
+    def get_full_name(self, obj):
+        return obj.get_full_name() or obj.get_username()
 
 
 class ImageSerializer(GenericSerializer):
@@ -85,6 +99,7 @@ class PaintingDocumentSerializer(GenericSerializer):
 class VisualAnnotationSerializer(DynamicDepthSerializer):
     category_detail = AnnotationCategorySerializer(source="category", many=True, read_only=True)
     tags_detail = TagSerializer(source="tags", many=True, read_only=True)
+    contributors = ContributorSerializer(many=True, read_only=True)
 
     class Meta(DynamicDepthSerializer.Meta):
         model = VisualAnnotation
