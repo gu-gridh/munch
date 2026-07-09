@@ -38,7 +38,7 @@ for app in getattr(settings, 'APPS_LOCAL', []):
 # Add i18n patterns
 urlpatterns += i18n_patterns(
     path('', include(router.urls)),
-    path('admin/', admin.site.urls), 
+    path('admin/', admin.site.urls),
     *apps,
     prefix_default_language=False
 )
@@ -47,3 +47,7 @@ urlpatterns += i18n_patterns(
 urlpatterns += staticfiles_urlpatterns()
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if getattr(settings, "ENABLE_DEBUG_TOOLBAR", False):
+    from debug_toolbar.toolbar import debug_toolbar_urls
+    urlpatterns += debug_toolbar_urls()

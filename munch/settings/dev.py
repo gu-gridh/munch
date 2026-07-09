@@ -3,12 +3,18 @@ import os
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ENABLE_DEBUG_TOOLBAR = True
 
 # SECURITY WARNING: define the correct hosts in production!
 # ALLOWED_HOSTS = ["*"]
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+INSTALLED_APPS += ["debug_toolbar"]
+
+MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
+
+INTERNAL_IPS = ["127.0.0.1"]
 
 DATABASES = {
     'default': {
