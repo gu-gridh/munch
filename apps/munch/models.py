@@ -128,6 +128,8 @@ class Artwork(AbstractBaseModel):
     materials = models.ManyToManyField("Material", blank=True, related_name="artworks", verbose_name=_("Materials"))
     techniques = models.ManyToManyField("Technique", blank=True, related_name="artworks", verbose_name=_("Techniques"))
     description = models.TextField(blank=True, verbose_name=_("Description"))
+    interactive_annotations = models.IntegerField(blank=True, default=200,
+                                                  help_text="Choose amount of simultaneously interactive annotations")
 
     class Meta:
         verbose_name = _("Artwork")
