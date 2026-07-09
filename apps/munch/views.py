@@ -251,7 +251,7 @@ class ArtworkViewSet(DynamicDepthViewSet):
 
 
 class ImageViewSet(DynamicDepthViewSet):
-    queryset = Image.objects.filter(published=True).select_related("artwork")
+    queryset = Image.objects.filter(published=True).select_related("artwork").prefetch_related("artwork__materials")
     serializer_class = ImageSerializer
     filter_backends = SEARCH_AND_FILTER
     filterset_class = ImageFilter
@@ -309,7 +309,7 @@ class VisualAnnotationViewSet(DynamicDepthViewSet):
 
     queryset = VisualAnnotation.objects.filter(published=True).select_related(
         "artwork",
-    ).prefetch_related("category", "tags")
+    ).prefetch_related("category", "tags", "contributors")
     serializer_class = VisualAnnotationSerializer
     filter_backends = SEARCH_AND_FILTER
     filterset_class = VisualAnnotationFilter
