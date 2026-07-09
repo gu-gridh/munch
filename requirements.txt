@@ -28,7 +28,7 @@ django-map-widgets>=0.5.4, <1
 django-cors-headers>=4.9.0, <5
 
 # Admin interface and UI enhancements
-django-admin-interface>=0.32.0, <1
+django-admin-interface>=0.31.0, <0.32.0
 django-admin-autocomplete-filter>=0.7.1, <1
 django-colorfield>=0.14.0, <1
 django-rangefilter>=0.9.1, <1
