@@ -9,6 +9,8 @@ from django.utils.translation import gettext_lazy as _
 
 from munch.abstract.models import AbstractBaseModel, AbstractImageModel, AbstractTIFFImageModel, AbstractTagModel
 
+from .validators import validate_svg_xml
+
 
 IMAGE_TYPE_CHOICES = [
     ("orthophoto", _("Orthophoto")),
@@ -273,6 +275,7 @@ class VisualAnnotation(AbstractBaseModel, ContributorMixin):
         blank=True,
         verbose_name=_("SVG selector"),
         help_text=_("Raw SVG polygon snippet from Annotorious, e.g. &lt;svg&gt;&lt;polygon points=.../&gt;&lt;/svg&gt;."),
+        validators=[validate_svg_xml]
     )
     artwork = models.ForeignKey(
         Artwork,
