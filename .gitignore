@@ -45,3 +45,9 @@ coverage.xml
 
 # mypy
 .mypy_cache/
+
+# migrations
+*/migrations/*
+*/migrations/*.py
+*/migrations/*.py[cod]
+*/migrations/__pycache__/
