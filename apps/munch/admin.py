@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.db.models import TextField
 from django.forms import Textarea
 from django.utils.html import format_html
-from django.conf import settings
 
 from .forms.fields import FullNameContributorField
 from munch.utils import DEFAULT_FIELDS
@@ -89,23 +88,37 @@ class ArtworkAdmin(admin.ModelAdmin):
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
     list_display = ["artwork", "image_type", "capture_year", "sort_order",
-                    "published"]
-    readonly_fields = ['iiif_file', *DEFAULT_FIELDS]
+                    "published", "thumbnail_preview"]
+    readonly_fields = ["image_preview", 'iiif_file', *DEFAULT_FIELDS]
     list_filter = ["image_type", "capture_year", "published"]
     search_fields = ["artwork__title", "caption", "source_label"]
     autocomplete_fields = ["artwork"]
 
     def image_preview(self, obj):
-        if obj.iiif_file:
-            return format_html(f'<img src="{settings.IIIF_URL}{obj.iiif_file}/full/,300/0/default.jpg"/>')
-        else:
-            return format_html(f'<img src="{settings.ORIGINAL_URL}/{obj.file}" height="300" />')
+        if obj.file and getattr(obj.file, "url", None):
+            return format_html(
+                '<img src="{}" height="300" />',
+                obj.file.url,
+            )
+        if obj.iiif_file and getattr(obj.iiif_file, "url", None):
+            return format_html(
+                '<img src="{}"/>',
+                obj.iiif_file.url,
+            )
+        return ""
 
     def thumbnail_preview(self, obj):
-        if obj.iiif_file:
-            return format_html(f'<img src="{settings.IIIF_URL}{obj.iiif_file}/full/,100/0/default.jpg"/>')
-        else:
-            return format_html(f'<img src="{settings.ORIGINAL_URL}/{obj.file}" height="100" />')
+        if obj.file and getattr(obj.file, "url", None):
+            return format_html(
+                '<img src="{}" height="100" />',
+                obj.file.url,
+            )
+        if obj.iiif_file and getattr(obj.iiif_file, "url", None):
+            return format_html(
+                '<img src="{}"/>',
+                obj.iiif_file.url,
+            )
+        return ""
 
 
 @admin.register(Mesh)
