@@ -284,6 +284,7 @@ class VisualAnnotation(AbstractBaseModel, ContributorMixin):
         blank=True,
         null=True,
         verbose_name=_("Artwork"),
+        default=1,
     )
     title = models.CharField(max_length=256, blank=True, editable=False, verbose_name=_("Annotation ID"))
     alt_title = models.CharField(max_length=256, blank=True, verbose_name=_("Title"))
