@@ -198,6 +198,7 @@ class Image(AbstractTIFFImageModel):
     capture_year = models.PositiveIntegerField(blank=True, null=True, verbose_name=_("Capture year"))
     source_label = models.CharField(max_length=256, blank=True, verbose_name=_("Source label"))
     sort_order = models.PositiveIntegerField(default=0, verbose_name=_("Sort order"))
+    zenodo_url = models.URLField(max_length=256, blank=True, null=True, verbose_name=_("Zenodo URL"))
 
     class Meta:
         verbose_name = _("image")

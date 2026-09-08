@@ -89,8 +89,8 @@ class ArtworkAdmin(admin.ModelAdmin):
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
     list_display = ["artwork", "image_type", "capture_year", "sort_order",
-                    "published", "thumbnail_preview"]
-    readonly_fields = ["image_preview", 'iiif_file', *DEFAULT_FIELDS]
+                    "published"]
+    readonly_fields = ['iiif_file', *DEFAULT_FIELDS]
     list_filter = ["image_type", "capture_year", "published"]
     search_fields = ["artwork__title", "caption", "source_label"]
     autocomplete_fields = ["artwork"]
