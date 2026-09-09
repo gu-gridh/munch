@@ -79,6 +79,7 @@ class ImageSerializer(GenericSerializer):
             "caption",
             "capture_year",
             "source_label",
+            "zenodo_url",
             "sort_order",
             "artwork",
         ]
