@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.db.models import TextField
 from django.forms import Textarea
 from django.utils.html import format_html
+from django.conf import settings
 
 from .forms.fields import FullNameContributorField
 from munch.utils import DEFAULT_FIELDS
@@ -95,30 +96,16 @@ class ImageAdmin(admin.ModelAdmin):
     autocomplete_fields = ["artwork"]
 
     def image_preview(self, obj):
-        if obj.file and getattr(obj.file, "url", None):
-            return format_html(
-                '<img src="{}" height="300" />',
-                obj.file.url,
-            )
-        if obj.iiif_file and getattr(obj.iiif_file, "url", None):
-            return format_html(
-                '<img src="{}"/>',
-                obj.iiif_file.url,
-            )
-        return ""
+        if obj.iiif_file:
+            return format_html(f'<img src="{settings.IIIF_URL}{obj.iiif_file}/full/,300/0/default.jpg"/>')
+        else:
+            return format_html(f'<img src="{settings.ORIGINAL_URL}/{obj.file}" height="300" />')
 
     def thumbnail_preview(self, obj):
-        if obj.file and getattr(obj.file, "url", None):
-            return format_html(
-                '<img src="{}" height="100" />',
-                obj.file.url,
-            )
-        if obj.iiif_file and getattr(obj.iiif_file, "url", None):
-            return format_html(
-                '<img src="{}"/>',
-                obj.iiif_file.url,
-            )
-        return ""
+        if obj.iiif_file:
+            return format_html(f'<img src="{settings.IIIF_URL}{obj.iiif_file}/full/,100/0/default.jpg"/>')
+        else:
+            return format_html(f'<img src="{settings.ORIGINAL_URL}/{obj.file}" height="100" />')
 
 
 @admin.register(Mesh)
